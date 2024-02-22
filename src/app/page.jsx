@@ -1,58 +1,93 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import styled from "@emotion/styled";
 import Linear from "@/components/Linear";
 
 const GridElement = styled.td`
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  background: lightgreen;
-  user-select: none;
+  background: #DDD;
   touch-action: pan-down;
-  border: 1px solid white;
-`;
-const Table = styled.table`
-  border-spacing: 0;
-  user-select: none;
-  & * {
-    user-select: none;
+  border: 1px solid black;
+  &.selected {
+    background: #66aaaa;
   }
 `;
+const Table = styled.table`
+  padding: 20px 0;
+  border-spacing: 0;
+  user-select: none;
+  text-align: center;
+  & td {
+    width: 50px;
+    height: 10px;
+    box-sizing: border-box;
+  }
+`;
+const TimeTd = styled.td`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transform: translateY(-50%);
+  font-size: smaller;
+`;
 
-function Grid({ children, id, down=()=>{}, enter=()=>{}, selected=false }) {
+function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
+function pad(n, digit){ return `0000000000${n}`.slice(-digit); }
+class Time{
+  constructor(i, j) {
+    this.hour = parseInt(i / 4);
+    this.section = i % 4;
+    this.minute = this.section * 15;
+    this.week = j + 1;
+    this.id = `${i}-${j}`;
+    this.timeStr = `${pad(this.hour, 2)}:${pad(this.minute, 2)}`
+  }
+}
+const ROW = new Array(12 * 4).fill(0).map((e, i) => i);
+const COL = new Array(7).fill(0).map((e, i) => i);
+const dayOfWeek = "Sun Mon Tue Wed Thu Fri Sat".split(" ");
+
+function Grid({ children, time, down=()=>{}, enter=()=>{}, selected=false }) {
   return (
     <GridElement
-      id={id}
+      id={time.id}
       onPointerDown={down}
       onMouseEnter={enter}
-      style={selected ? { background: 'red' } : undefined}
+      className={selected ? "selected" : ""}
+      style={[
+        { borderBottom: 'none' },
+        { borderTop: 'none', borderBottomStyle: 'dotted' },
+        { borderTop: 'none', borderBottom: 'none' },
+        { borderTop: 'none' },
+      ][time.section]}
     >
-      {id}
     </GridElement>
   );
 }
 
-function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
-const ROW = new Array(8).fill(0).map((e, i) => i);
-const COL = new Array(8).fill(0).map((e, i) => i);
 export default function Home() {
   const [sel, setSel] = useState(null);
-  console.log(JSON.stringify(sel));
+  const [on, setOn] = useState(ROW.map(() => COL.map(() => false)));
+  // console.log(JSON.stringify(sel));
 
-  function up() {
-    // console.log("up");
+  const modified = useCallback((i, j) => sel === null ? on[i][j] :
+    inRange(i, sel[0][0], sel[1][0]) && inRange(j, sel[0][1], sel[1][1]) ? !on[sel[0][0]][sel[0][1]] : on[i][j], [sel, on]);
+  
+  const up = useCallback(() => {
+    console.log("up", sel);
+    if (sel){
+      setOn(o => o.map((row, i) => row.map((e, j) => modified(i, j))));
+    }
     setSel(null);
-  }
-  function down(i, j) {
+  }, [sel, setSel, setOn, modified]);
+  const down = useCallback((i, j) => {
     // console.log("down", i, j);
     setSel([[i, j], [i, j]]);
-  }
-  function enter(i, j) {
+  }, [setSel]);
+  const enter = useCallback((i, j) => {
     // console.log("enter", i, j);
     setSel(sel => sel && [sel[0], [i, j]]);
-  }
+  }, [setSel]);
 
   useEffect(() => {
     function touch(e) {
@@ -71,23 +106,36 @@ export default function Home() {
       document.removeEventListener("touchmove", touch);
       document.removeEventListener("touchend", up);
     };
-  }, [enter]);
+  }, [enter, up]);
 
   return (
     <main onMouseUp={up}>
-      <Linear style={{ height: '100vh' }}>
+      <Linear style={{ minHeight: '100vh' }}>
         <Table onDragStart={e => e.preventDefault()}>
           <tbody>
+            <tr>
+              <td></td>
+              {COL.map(j =>
+                <td key={j}>{dayOfWeek[j % 7]}</td>)}
+            </tr>
             {ROW.map(i =>
               <tr key={i}>
+                <TimeTd>
+                  {new Time(i, 0).section === 0 && new Time(i, 0).timeStr}
+                </TimeTd>
                 {COL.map(j =>
                   <Grid
-                    key={j} id={`${i}-${j}`}
+                    key={j} time={new Time(i, j)}
                     down={() => down(i, j)}
                     enter={() => enter(i, j)}
-                    selected={sel && inRange(i, sel[0][0], sel[1][0]) && inRange(j, sel[0][1], sel[1][1])}
+                    selected={modified(i, j)}
                   />)}
               </tr>)}
+            <tr>
+              <TimeTd>
+                {new Time(ROW[ROW.length-1]+1, 0).section === 0 && new Time(ROW[ROW.length-1]+1, 0).timeStr}
+              </TimeTd>
+            </tr>
           </tbody>
         </Table>
       </Linear>
