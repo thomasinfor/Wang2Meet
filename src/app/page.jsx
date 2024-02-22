@@ -11,6 +11,12 @@ const GridElement = styled.td`
   &.selected {
     background: #66aaaa;
   }
+  &.covered {
+    border-color: #DDD;
+  }
+  &.covered.selected {
+    border-color: #66aaaa;
+  }
 `;
 const Table = styled.table`
   padding: 20px 0;
@@ -47,13 +53,13 @@ const ROW = new Array(12 * 4).fill(0).map((e, i) => i);
 const COL = new Array(7).fill(0).map((e, i) => i);
 const dayOfWeek = "Sun Mon Tue Wed Thu Fri Sat".split(" ");
 
-function Grid({ children, time, down=()=>{}, enter=()=>{}, selected=false }) {
+function Grid({ children, time, down=()=>{}, enter=()=>{}, selected=false, covered=false }) {
   return (
     <GridElement
       id={time.id}
       onPointerDown={down}
       onMouseEnter={enter}
-      className={selected ? "selected" : ""}
+      className={[selected && "selected", covered && "covered"].filter(e => e).join(' ')}
       style={[
         { borderBottom: 'none' },
         { borderTop: 'none', borderBottomStyle: 'dotted' },
@@ -70,8 +76,8 @@ export default function Home() {
   const [on, setOn] = useState(ROW.map(() => COL.map(() => false)));
   // console.log(JSON.stringify(sel));
 
-  const modified = useCallback((i, j) => sel === null ? on[i][j] :
-    inRange(i, sel[0][0], sel[1][0]) && inRange(j, sel[0][1], sel[1][1]) ? !on[sel[0][0]][sel[0][1]] : on[i][j], [sel, on]);
+  const covered = useCallback((i, j) => sel && inRange(i, sel[0][0], sel[1][0]) && inRange(j, sel[0][1], sel[1][1]), [sel]);
+  const modified = useCallback((i, j) => covered(i, j) ? !on[sel[0][0]][sel[0][1]] : on[i][j], [sel, on, covered]);
   
   const up = useCallback(() => {
     console.log("up", sel);
@@ -129,6 +135,7 @@ export default function Home() {
                     down={() => down(i, j)}
                     enter={() => enter(i, j)}
                     selected={modified(i, j)}
+                    covered={covered(i, j)}
                   />)}
               </tr>)}
             <tr>
