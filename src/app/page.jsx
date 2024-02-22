@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import styled from "@emotion/styled";
 import Linear from "@/components/Linear";
@@ -10,12 +10,22 @@ const GridElement = styled.td`
   text-align: center;
   background: lightgreen;
   user-select: none;
+  touch-action: pan-down;
+  border: 1px solid white;
+`;
+const Table = styled.table`
+  border-spacing: 0;
+  user-select: none;
+  & * {
+    user-select: none;
+  }
 `;
 
 function Grid({ children, id, down=()=>{}, enter=()=>{}, selected=false }) {
   return (
     <GridElement
-      onMouseDown={down}
+      id={id}
+      onPointerDown={down}
       onMouseEnter={enter}
       style={selected ? { background: 'red' } : undefined}
     >
@@ -44,10 +54,29 @@ export default function Home() {
     setSel(sel => sel && [sel[0], [i, j]]);
   }
 
+  useEffect(() => {
+    function touch(e) {
+      const theTouch = e.changedTouches[0];
+      const element = document.elementFromPoint(theTouch.clientX, theTouch.clientY);
+      // console.log(element);
+      try {
+        const idx = element.id.split("-").map(e => parseInt(e));
+        if (idx.length == 2)
+          enter(idx[0], idx[1]);
+      } catch(e) {}
+    }
+    document.addEventListener("touchmove", touch);
+    document.addEventListener("touchend", up);
+    return () => {
+      document.removeEventListener("touchmove", touch);
+      document.removeEventListener("touchend", up);
+    };
+  }, [enter]);
+
   return (
     <main onMouseUp={up}>
       <Linear style={{ height: '100vh' }}>
-        <table>
+        <Table onDragStart={e => e.preventDefault()}>
           <tbody>
             {ROW.map(i =>
               <tr key={i}>
@@ -60,7 +89,7 @@ export default function Home() {
                   />)}
               </tr>)}
           </tbody>
-        </table>
+        </Table>
       </Linear>
     </main>
   );
