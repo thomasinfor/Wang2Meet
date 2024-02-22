@@ -12,10 +12,7 @@ const GridElement = styled.td`
     background: #66aaaa;
   }
   &.covered {
-    border-color: #DDD;
-  }
-  &.covered.selected {
-    border-color: #66aaaa;
+    border-width: 0;
   }
 `;
 const Table = styled.table`
