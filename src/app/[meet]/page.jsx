@@ -1,23 +1,24 @@
 "use client"
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 
 export default function Meet({ params }) {
+  const router = useRouter();
   const [config, setConfig] = useState(null);
   const [name, setName] = useState("");
   useEffect(() => {
     (async () => {
-      // let res = await fetch(`${params.meet}`);
-      let res = await {
-        time: [0, 96],
-        date: [2024, 2, 24],
-        duration: 8,
-        title: "Let's meet"
-      };
-      setConfig(res);
+      let res = await fetch(`/api/${params.meet}`);
+      if (res.ok) {
+        res = await res.json();
+        setConfig(res);
+      } else {
+        router.push("/");
+      }
     })();
   }, [params.meet]);
 

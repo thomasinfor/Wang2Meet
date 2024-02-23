@@ -29,18 +29,19 @@ export default function Home() {
 
   async function confirm() {
     console.log(title, start, end, time);
-    // let res = await fetch(``, {
-    //   body: JSON.stringify({
-    //     time: time.map(e => e * 4),
-    //     date: start.split('-').map(e => e.parseInt),
-    //     duration: 8,
-    //     title
-    //   })
-    // });
-    // if (!res.ok) return;
-    // res = (await res.json()).id;
-    // router.push(`/${res.id}`);
-    router.push("/jizz");
+    let res = await fetch(`/api/create-event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        time: time.map(e => e * 4),
+        date: start.split('-').map(e => parseInt(e)),
+        duration: (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1,
+        title
+      })
+    });
+    if (!res.ok) return;
+    res = await res.json();
+    router.push(`/${res.id}`);
   }
 
   return (
@@ -95,7 +96,11 @@ export default function Home() {
               onChange={(e, v) => setTime(v)}
             />
           </Group>
-          <Button variant="contained" onClick={confirm} disabled={time[0] === time[1]}>Go</Button>
+          <Button
+            variant="contained"
+            onClick={confirm}
+            disabled={time[0] === time[1] || new Date(end).getTime() < new Date(start).getTime()}
+          >Go</Button>
         </Stack>
       </Linear>
     </main>
