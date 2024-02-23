@@ -6,7 +6,6 @@ export class Time{
     this.section = i % 4;
     this.minute = this.section * 15;
     this.week = j + 1;
-    this.id = `${i}-${j}`;
     this.timeStr = `${pad(this.hour, 2)}:${pad(this.minute, 2)}`
   }
 }

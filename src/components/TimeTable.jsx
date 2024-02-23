@@ -47,10 +47,10 @@ const DateCell = styled.td`
 `;
 
 
-function Grid({ children, time, down=()=>{}, enter=()=>{}, selected=false, covered=false, UID="" }) {
+function Grid({ children, time, id, down=()=>{}, enter=()=>{}, selected=false, covered=false, UID="" }) {
   return (
     <GridElement
-      id={`${time.id}-${UID}`}
+      id={`${id}-${UID}`}
       onPointerDown={down}
       onMouseEnter={enter}
       className={[selected && "selected", covered && "covered"].filter(e => e).join(' ')}
@@ -148,6 +148,7 @@ export default function TimeTable({ time=defaultTime, date=defaultDate, duration
             {COL.map((day, j) =>
               <Grid
                 key={j} time={new Time(time, day)}
+                id={`${i}-${j}`}
                 UID={randomID}
                 down={() => down(i, j)}
                 enter={() => enter(i, j)}
