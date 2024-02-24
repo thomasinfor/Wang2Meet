@@ -39,7 +39,6 @@ const TimeTd = styled.td`
   font-size: smaller;
   position: sticky;
   left: 0;
-  pointer-events: none;
 `;
 const DateCell = styled.td`
   & > span {
