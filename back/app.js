@@ -17,17 +17,34 @@ const events = {};
 App.post('/create-event', async (req, res) => {
   try {
     const id = uuid();
-    console.log(id, req.body);
     events[id] = JSON.parse(JSON.stringify(req.body));
+    events[id].collection = {};
     res.status(200).json({ id });
   } catch(e) { console.error(e); }
 });
 
 App.get('/:id', async (req, res) => {
   try {
-    console.log(req.params.id);
-    if (req.params.id in events) {
-      res.status(200).json(events[req.params.id]);
+    const id = req.params.id;
+    if (id in events) {
+      res.status(200).json(events[id]);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch(e) { console.error(e); }
+});
+
+App.post('/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (id in events) {
+      const { name, time } = req.body || {};
+      if (!name || !time) {
+        res.sendStatus(400);
+      } else {
+        events[id].collection[name] = time;
+        res.status(200).json(events[id]);
+      }
     } else {
       res.sendStatus(404);
     }

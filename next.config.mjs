@@ -7,7 +7,6 @@ const withPWA = nextPwa({
 })
 
 const nextConfig = withPWA({
-  output: 'standalone',
   async rewrites() {
     return [
       {

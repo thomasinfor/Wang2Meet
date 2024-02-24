@@ -9,6 +9,9 @@ export class Time{
     this.timeStr = `${pad(this.hour, 2)}:${pad(this.minute, 2)}`
   }
 }
-// export const ROW = new Array(12 * 4).fill(0).map((e, i) => i);
-// export const COL = new Array(7).fill(0).map((e, i) => i);
 export const dayOfWeek = "Sun Mon Tue Wed Thu Fri Sat".split(" ");
+export function dump(table) { return table.map(r => r.map(e => e ? "1" : "0").join('')).join('\n'); }
+export function parse(str) { return str.split('\n').map(r => r.split('').map(e => e === "1")); }
+export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.slice(5, 7)].map(
+  e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
+).join(''); }

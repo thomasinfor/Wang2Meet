@@ -46,7 +46,7 @@ export default function Home() {
 
   return (
     <main>
-      <Linear style={{ minHeight: '100vh' }}>
+      <Linear style={{ minHeight: 'calc(100vh - 64px)' }}>
         <Stack
           spacing={5}
           direction="row"

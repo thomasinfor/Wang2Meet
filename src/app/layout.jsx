@@ -1,5 +1,7 @@
 import { Roboto_Mono  } from "next/font/google";
 import "./global.css";
+import Theme from '@/components/Theme';
+import Navbar from '@/components/Navbar';
 
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
@@ -14,7 +16,12 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest.webmanifest"/>
       </head>
-      <body className={inter.className} style={{ margin: 0 }}>{children}</body>
+      <body className={inter.className} style={{ margin: 0 }}>
+        <Theme>
+          <Navbar/>
+          {children}
+        </Theme>
+      </body>
     </html>
   );
 }

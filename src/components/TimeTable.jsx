@@ -2,14 +2,15 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import styled from "@emotion/styled";
+import { useTheme } from '@mui/material/styles';
 import Linear from "@/components/Linear";
-import { inRange, pad, Time, dayOfWeek } from "@/utils";
+import { inRange, pad, Time, dayOfWeek, colorScale } from "@/utils";
 
 const GridElement = styled.td`
   background: #DDD;
   touch-action: pan-down;
   border: 1px solid black;
-  &.selected {
+  &.on {
     background: #66aaaa;
   }
   &.covered {
@@ -36,6 +37,9 @@ const TimeTd = styled.td`
   justify-content: center;
   transform: translateY(-50%);
   font-size: smaller;
+  position: sticky;
+  left: 0;
+  pointer-events: none;
 `;
 const DateCell = styled.td`
   & > span {
@@ -47,19 +51,20 @@ const DateCell = styled.td`
 `;
 
 
-function Grid({ children, time, id, down=()=>{}, enter=()=>{}, selected=false, covered=false, UID="" }) {
+function Grid({ time, id, down=()=>{}, enter=()=>{}, on=false, covered=false, view=false, UID="" }) {
+  const theme = useTheme();
   return (
     <GridElement
       id={`${id}-${UID}`}
       onPointerDown={down}
       onMouseEnter={enter}
-      className={[selected && "selected", covered && "covered"].filter(e => e).join(' ')}
-      style={[
+      className={[!view && on && "on", !view && covered && "covered"].filter(e => e).join(' ')}
+      style={{ ...[
         { borderBottom: 'none' },
         { borderTop: 'none', borderBottomStyle: 'dotted' },
         { borderTop: 'none', borderBottom: 'none' },
         { borderTop: 'none' },
-      ][time.section]}
+      ][time.section], backgroundColor: view ? colorScale('#339900' || theme.palette.primary.main, view) : undefined }}
     >
     </GridElement>
   );
@@ -67,14 +72,29 @@ function Grid({ children, time, id, down=()=>{}, enter=()=>{}, selected=false, c
 
 const defaultTime = [0, 48];
 const defaultDate = [2024, 6, 1];
-export default function TimeTable({ time=defaultTime, date=defaultDate, duration=5, confirm=()=>{}, disabled=false }) {
+export default function TimeTable({
+  time=defaultTime,
+  date=defaultDate,
+  duration=5,
+  confirm=()=>{},
+  disabled=false,
+  defaultTable=null,
+  view=false,
+}) {
+  const viewMode = view !== false;
+  const maxPeople = useMemo(() => view && new Set(view.flat().flat()).size, [view]);
+
   const [randomID, setRandomID] = useState(0);
   useEffect(() => { setRandomID(parseInt(Math.random() * 1e8)); }, []);
   const [sel, setSel] = useState(null);
-  const [on, setOn] = useState(null);
+  const [on, setOn] = useState(defaultTable);
   useEffect(() => {
-    setOn(new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)));
-  }, [time, duration, setOn]);
+    if (defaultTable)
+      setOn(defaultTable);
+    else
+      setOn(new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)));
+  }, [time, duration, setOn, defaultTable]);
+
   const ROW = useMemo(() => new Array(time[1] - time[0]).fill(time[0]).map((e, i) => e + i), [time]);
   const dates = useMemo(() => new Array(duration).fill(0).map((e, i) => new Date(date[0], date[1]-1, date[2]+i)), [date, duration]);
   const COL = useMemo(() => new Array(duration).fill(new Date(date[0], date[1]-1, date[2]).getDay()).map((e, i) => e + i - 1), [date, duration]);
@@ -84,7 +104,7 @@ export default function TimeTable({ time=defaultTime, date=defaultDate, duration
 
   const up = useCallback(() => {
     // console.log("up", sel);
-    if (sel){
+    if (sel && !viewMode){
       setOn(o => {
         const res = o.map((row, i) => row.map((e, j) => modified(i, j)));
         confirm(res);
@@ -147,13 +167,14 @@ export default function TimeTable({ time=defaultTime, date=defaultDate, duration
             </TimeTd>
             {COL.map((day, j) =>
               <Grid
+                view={viewMode && (maxPeople === 0 ? 0 : view[i][j].length / maxPeople)}
                 key={j} time={new Time(time, day)}
                 id={`${i}-${j}`}
                 UID={randomID}
                 down={() => down(i, j)}
                 enter={() => enter(i, j)}
-                selected={modified(i, j)}
-                covered={covered(i, j)}
+                on={viewMode ? on[i][j] : modified(i, j)}
+                covered={!viewMode && covered(i, j)}
               />)}
           </tr>)}
         <tr>
