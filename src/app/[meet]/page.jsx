@@ -7,6 +7,7 @@ import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
 import { dump, parse } from "@/utils";
+import { useAuth } from "@/context/Auth";
 
 const Tables = styled.div`
   display: flex;
@@ -60,12 +61,13 @@ function AvailableList({ list=[] }) {
 }
 
 export default function Meet({ params }) {
+  const { user } = useAuth();
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
   const [focus, setFocus] = useState(null);
+  const name = useMemo(() => user ? user.displayName : "", [user]);
 
-  const [name, setName] = useState("");
   useEffect(() => {
     (async () => {
       let res = await fetch(`/api/${params.meet}`);
@@ -106,7 +108,6 @@ export default function Meet({ params }) {
       {config &&
         <Linear style={{ minHeight: '100vh' }}>
           <h3>{config.title}</h3>
-          <TextField autoFocus label="Name" variant="outlined" value={name} onChange={e => setName(e.target.value)}/>
           <Tables>
             <Container>
               {focus !== null

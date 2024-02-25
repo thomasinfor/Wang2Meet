@@ -2,6 +2,7 @@ import { Roboto_Mono  } from "next/font/google";
 import "./global.css";
 import Theme from '@/components/Theme';
 import Navbar from '@/components/Navbar';
+import { AuthContextProvider } from "@/context/Auth";
 
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
@@ -18,8 +19,10 @@ export default function RootLayout({ children }) {
       </head>
       <body className={inter.className} style={{ margin: 0 }}>
         <Theme>
-          <Navbar/>
-          {children}
+          <AuthContextProvider>
+            <Navbar/>
+            {children}
+          </AuthContextProvider>
         </Theme>
       </body>
     </html>

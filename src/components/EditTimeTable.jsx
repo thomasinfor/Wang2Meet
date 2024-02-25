@@ -39,7 +39,6 @@ export default function EditTimeTable({
   const covered = useCallback((i, j) => sel && inRange(i, sel[0][0], sel[1][0]) && inRange(j, sel[0][1], sel[1][1]), [sel]);
   const newTable = useCallback((i, j) => covered(i, j) ? !value[sel[0][0]][sel[0][1]] : value[i][j], [sel, value, covered]);
   const up = useCallback(() => {
-    console.log("up", sel?.[0], sel?.[1]);
     if (sel) {
       const res = tableMap(EMPTY_TABLE, (e, i, j) => newTable(i, j));
       setValue(res);
