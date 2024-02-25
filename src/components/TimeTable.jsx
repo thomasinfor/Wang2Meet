@@ -36,6 +36,10 @@ const DateCell = styled.td`
   line-height: 100%;
   white-space: pre;
   padding: 5px;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 `;
 
 const defaultTime = [0, 48];

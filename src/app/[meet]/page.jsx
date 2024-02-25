@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
@@ -25,6 +26,7 @@ const Container = styled.div`
   box-sizing: border-box;
   @media (max-width: 700px) {
     width: 100%;
+    height: 40vh;
   }
   display: flex;
   flex-direction: column;
@@ -36,6 +38,9 @@ const AvailableListContainer = styled(Linear)`
   min-height: 160px;
   box-sizing: border-box;
   justify-content: flex-start;
+`;
+const TableWrapper = styled.div`
+  max-width: 100%;
 `;
 
 function AvailableList({ list=[] }) {
@@ -106,31 +111,37 @@ export default function Meet({ params }) {
   return (
     <main>
       {config &&
-        <Linear style={{ minHeight: '100vh' }}>
+        <Linear style={{ minHeight: '100vh', gap: '10px' }}>
           <h3>{config.title}</h3>
+          {name.length === 0 &&
+            <Alert severity="info">Sign in to continue</Alert>}
           <Tables>
             <Container>
               {focus !== null
                 ? <AvailableList list={Object.entries(config.collection).map(([k, v]) => [k, v[focus[0]][focus[1]]])}/>
-                : <EditTimeTable
-                    defaultTable={config.collection[name] || null}
-                    disabled={name.length === 0}
-                    time={config.time}
-                    date={config.date}
-                    duration={config.duration}
-                    value={table}
-                    setValue={update}
-                  />}
+                : <TableWrapper>
+                    <EditTimeTable
+                      defaultTable={config.collection[name] || null}
+                      disabled={name.length === 0}
+                      time={config.time}
+                      date={config.date}
+                      duration={config.duration}
+                      value={table}
+                      setValue={update}
+                    />
+                  </TableWrapper>}
             </Container>
             <Container>
-              <ViewTimeTable
-                value={config.collection}
-                time={config.time}
-                date={config.date}
-                duration={config.duration}
-                focus={focus}
-                setFocus={setFocus}
-              />
+              <TableWrapper>
+                <ViewTimeTable
+                  value={config.collection}
+                  time={config.time}
+                  date={config.date}
+                  duration={config.duration}
+                  focus={focus}
+                  setFocus={setFocus}
+                />
+              </TableWrapper>
             </Container>
           </Tables>
         </Linear>}

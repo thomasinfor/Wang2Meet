@@ -29,7 +29,8 @@ export default function Navbar() {
           if (!user) {
             signIn();
           } else {
-            logOut();
+            if (window.confirm("Sign out?"))
+              logOut();
           }
         }}>
           {user ? <Avatar src={user.photoURL} sx={{ width: 24, height: 24 }}/> : <AccountCircle />}
