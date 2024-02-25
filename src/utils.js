@@ -1,11 +1,10 @@
 export function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
 export function pad(n, digit){ return `0000000000${n}`.slice(-digit); }
 export class Time{
-  constructor(i, j) {
+  constructor(i) {
     this.hour = parseInt(i / 4);
     this.section = i % 4;
     this.minute = this.section * 15;
-    this.week = j + 1;
     this.timeStr = `${pad(this.hour, 2)}:${pad(this.minute, 2)}`
   }
 }
@@ -15,3 +14,4 @@ export function parse(str) { return str.split('\n').map(r => r.split('').map(e =
 export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.slice(5, 7)].map(
   e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
 ).join(''); }
+export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e, i, j))); }
