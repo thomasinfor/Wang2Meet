@@ -38,6 +38,8 @@ export default function Home() {
 
   async function confirm() {
     console.log(title, start, end, time);
+    if (title.length === 0)
+      return window.alert("Please fill in the title.");
     let res = await fetch(`/api/create-event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

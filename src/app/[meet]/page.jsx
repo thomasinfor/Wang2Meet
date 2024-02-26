@@ -74,6 +74,7 @@ const SwitchButton = styled.div`
 `;
 const SmallMenuItem = styled(MenuItem)(({ theme }) => ({
   minHeight: 0,
+  maxWidth: '100%',
   alignItems: 'baseline',
   "& > span": {
     color: '#888',
@@ -214,8 +215,8 @@ export default function Meet({ params }) {
     ),
     view: (
       <>
-        <div>
-          <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+        <div style={{ maxWidth: '100%', margin: '0 10px' }}>
+          <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
             <InputLabel>Target</InputLabel>
             <Select
               value={viewGroup}
@@ -237,7 +238,7 @@ export default function Meet({ params }) {
           <AvailableList
             list={getAvailable(viewFocus)}
             time={interpret(config.date, config.time[0], viewFocus)}
-            style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6 }}
+            style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
           />}
         <Tables>
           <Container>

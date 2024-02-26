@@ -26,7 +26,7 @@ export default function Navbar() {
         </IconButton>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
         </Typography>
-        {user && <Chip label={user.displayName} icon={<EditIcon/>} onClick={async () => {
+        {user && <Chip sx={{ maxWidth: '190px' }} label={user.displayName} icon={<EditIcon/>} onClick={async () => {
           try {
             const name = window.prompt("New name:");
             if (!name) return;
