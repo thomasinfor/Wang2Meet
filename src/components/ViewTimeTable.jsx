@@ -49,7 +49,7 @@ export default function ViewTimeTable({
 
   const totalPeople = useMemo(() => Object.keys(value).length, [value]);
   const available = useMemo(() => tableMap(EMPTY_TABLE, (_, i, j) =>
-      Object.entries(value).filter(([k, v]) => v[i][j]).map(e => e[0])), [value, EMPTY_TABLE]);
+      Object.entries(value).filter(([k, v]) => v.table[i][j]).map(e => e[0])), [value, EMPTY_TABLE]);
   const maxPeople = useMemo(() => available.flat().reduce((a, c) => Math.max(a, c.length), 0), [available]);
   const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length), [available, maxPeople]);
 

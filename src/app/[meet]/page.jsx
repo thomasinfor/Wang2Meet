@@ -24,7 +24,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
-import { dump, parse } from "@/utils";
+import { dump, parse, interpret, pad } from "@/utils";
 import { useAuth } from "@/context/Auth";
 
 const Tables = styled.div`
@@ -70,7 +70,12 @@ const SwitchButton = styled.div`
   z-index: 10;
 `;
 const SmallMenuItem = styled(MenuItem)(({ theme }) => ({
-  minHeight: 0
+  minHeight: 0,
+  alignItems: 'baseline',
+  "& > span": {
+    color: '#888',
+    fontSize: 'x-small',
+  },
 }));
 const Indicator = styled(TableCell)(({ theme }) => ({
   width: '20px',
@@ -79,27 +84,29 @@ const Indicator = styled(TableCell)(({ theme }) => ({
   }
 }));
 
-function AvailableList({ list=[], ...props }) {
+function AvailableList({ list=[], time=false, ...props }) {
   return (
     <AvailableListContainer {...props}>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ background: "#ddd" }}>
-              <TableCell align="left">{list.filter(e => e[1]).length}</TableCell>
-              <TableCell align="center"></TableCell>
-              <TableCell align="right">{list.filter(e => !e[1]).length}</TableCell>
+              <TableCell align="center">{list.filter(e => e.available).length}</TableCell>
+              <TableCell align="center"/* sx={{ lineHeight: 'normal', fontSize: 'x-small', whiteSpace: 'pre' }}*/>
+                {time && `${time[0]}/${time[1]}/${time[2]} ${time[3]}\n${pad(time[4], 2)}:${pad(time[5], 2)}`}
+              </TableCell>
+              <TableCell align="center">{list.filter(e => !e.available).length}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {list.map(([name, ok], i) => (
-              <TableRow key={name}>
-                <Indicator align="left">
-                  {ok && <div><CheckIcon color="success" fontSize="small"/></div>}
+            {list.map(({ name, email, available}, i) => (
+              <TableRow key={email}>
+                <Indicator align="center">
+                  {available && <div><CheckIcon color="success" fontSize="small"/></div>}
                 </Indicator>
                 <TableCell align="center">{name}</TableCell>
-                <Indicator align="right">
-                  {!ok && <div><CloseIcon color="error" fontSize="small"/></div>}
+                <Indicator align="center">
+                  {!available && <div><CloseIcon color="error" fontSize="small"/></div>}
                 </Indicator>
               </TableRow>
             ))}
@@ -116,7 +123,6 @@ export default function Meet({ params }) {
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
   const [focus, setFocus] = useState(null);
-  const name = useMemo(() => user ? user.displayName : "", [user]);
 
   useEffect(() => {
     (async () => {
@@ -124,7 +130,7 @@ export default function Meet({ params }) {
       if (res.ok) {
         res = await res.json();
         for (let i in res.collection)
-          res.collection[i] = parse(res.collection[i]);
+          res.collection[i].table = parse(res.collection[i].table);
         setConfig(res);
       } else {
         router.push("/");
@@ -140,7 +146,7 @@ export default function Meet({ params }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name, time
+        name: user.displayName, time, email: user.email
       })
     });
     if (!res.ok) {
@@ -148,30 +154,33 @@ export default function Meet({ params }) {
     } else {
       res = await res.json();
       for (let i in res.collection)
-          res.collection[i] = i === name ? tbl : parse(res.collection[i]);
+          res.collection[i].table = i === user.email ? tbl : parse(res.collection[i].table);
       setConfig(res);
     }
-  }, [setTable, name]);
+  }, [setTable, user]);
 
   const [tab, setTab] = useState("edit");
   const [viewGroup, setViewGroup] = useState(true);
   const [viewFocus, setViewFocus] = useState([0, 0]);
+  const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
+    name: v.name, email: k, available: v.table[f[0]][f[1]],
+  })), [config]);
   const content = !config ? {} : {
     edit: (
       <>
-        {name.length === 0 &&
-          <Alert severity="info">Sign in to continue</Alert>}
+        {Boolean(user) || <Alert severity="info">Sign in to continue</Alert>}
         <Tables>
           <SplitViewContainer>
             {focus !== null
               ? <AvailableList
-                  list={Object.entries(config.collection).map(([k, v]) => [k, v[focus[0]][focus[1]]])}
+                  time={interpret(config.date, config.time, focus)}
+                  list={getAvailable(focus)}
                   style={{ paddingTop: '30px' }}
                 />
               : <TableWrapper>
                   <EditTimeTable
-                    defaultTable={config.collection[name] || null}
-                    disabled={name.length === 0}
+                    defaultTable={config.collection[user?.email]?.table || null}
+                    disabled={!user}
                     time={config.time}
                     date={config.date}
                     duration={config.duration}
@@ -204,18 +213,24 @@ export default function Meet({ params }) {
               value={viewGroup}
               label="Target"
               onChange={e => setViewGroup(e.target.value)}
+              sx={{ "& .MuiSelect-select > span": { display: 'none' } }}
             >
               <SmallMenuItem value={true}>
                 <em>ALL</em>
               </SmallMenuItem>
-              {Object.keys(config.collection).map((e, i) =>
-                <SmallMenuItem value={e} key={i}>{e}</SmallMenuItem>)}
+              {Object.entries(config.collection).map(([k, v], i) =>
+                <SmallMenuItem value={k} key={k}>
+                  {v.name}<span>&nbsp;&nbsp;{k}</span>
+                </SmallMenuItem>)}
             </Select>
           </FormControl>
         </div>
-        {viewGroup === true && viewFocus && <AvailableList list={
-          Object.entries(config.collection).map(([k, v]) => [k, v[viewFocus[0]][viewFocus[1]]])
-        } style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6 }}/>}
+        {viewGroup === true && viewFocus &&
+          <AvailableList
+            list={getAvailable(viewFocus)}
+            time={interpret(config.date, config.time, viewFocus)}
+            style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6 }}
+          />}
         <Tables>
           <Container>
             <TableWrapper>

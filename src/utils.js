@@ -15,3 +15,8 @@ export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.
   e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
 ).join(''); }
 export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e, i, j))); }
+export function interpret(date, time, [i, j]) {
+  date = new Date(new Date(date).getTime() + 86400000*j);
+  time = (time[0] + i) * 15;
+  return [date.getFullYear(), date.getMonth()+1, date.getDate(), dayOfWeek[date.getDay()], parseInt(time / 60), time % 60];
+}

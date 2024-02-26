@@ -1,7 +1,8 @@
 "use client"
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
+import { onAuthStateChanged, getAuth, signInWithPopup, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
@@ -36,10 +37,31 @@ export const AuthContextProvider = ({ children }) => {
     await signOut(auth);
   };
 
+  const updateUser = async profile => {
+    const res = await updateProfile(auth.currentUser, profile);
+    if ("displayName" in profile) {
+      let res = await fetch("/api/update-name", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: auth.currentUser.displayName,
+          email: auth.currentUser.email,
+        })
+      });
+      if (!res.ok) {
+        console.log(await res.text());
+      }
+    }
+    window.location.reload();
+    return res;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, signIn, logOut }}>
-      {children}
-    </AuthContext.Provider>
+    <ErrorBoundary>
+      <AuthContext.Provider value={{ user, signIn, logOut, updateUser }}>
+        {children}
+      </AuthContext.Provider>
+    </ErrorBoundary>
   );
 };
 
