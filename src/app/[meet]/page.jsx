@@ -95,8 +95,8 @@ function AvailableList({ list=[], time=false, ...props }) {
           <TableHead>
             <TableRow sx={{ background: "#ddd" }}>
               <TableCell align="center">{list.filter(e => e.available).length}</TableCell>
-              <TableCell align="center"/* sx={{ lineHeight: 'normal', fontSize: 'x-small', whiteSpace: 'pre' }}*/>
-                {time && `${time[0]}/${time[1]}/${time[2]} ${time[3]}\n${pad(time[4], 2)}:${pad(time[5], 2)}`}
+              <TableCell align="center" sx={{ minWidth: '145px' }}>
+                {time && `${time[0]}/${time[1]}/${time[2]} ${time[3]} ${pad(time[4], 2)}:${pad(time[5], 2)}`}
               </TableCell>
               <TableCell align="center">{list.filter(e => !e.available).length}</TableCell>
             </TableRow>
