@@ -58,7 +58,6 @@ export const AuthContextProvider = ({ children }) => {
   }
 
   const [history, setHistory] = useState(null);
-  console.log(history);
   useEffect(() => {
     try {
       setHistory(JSON.parse(window.localStorage.getItem(STORAGE_KEY`history`)) || []);

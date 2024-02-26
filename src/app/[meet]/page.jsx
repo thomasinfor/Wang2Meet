@@ -45,6 +45,8 @@ const Container = styled.div`
   justify-content: flex-start;
   align-items: center;
   width: 100%;
+  border: 1px dashed black;
+  border-radius: 5px;
 `;
 const SplitViewContainer = styled(Container)`
   width: 45%;
@@ -61,6 +63,7 @@ const AvailableListContainer = styled(Linear)`
 `;
 const TableWrapper = styled.div`
   max-width: 100%;
+  max-height: 95vh;
 `;
 const SwitchButton = styled.div`
   position: absolute;

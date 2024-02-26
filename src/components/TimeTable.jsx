@@ -27,6 +27,8 @@ const TimeTd = styled.td`
   transform: translateY(-50%);
   font-size: smaller;
   position: sticky;
+  background: #fff;
+  font-size: 12px;
   left: 0;
 `;
 const DateCell = styled.td`
