@@ -118,7 +118,7 @@ function AvailableList({ list=[], time=false, ...props }) {
 }
 
 export default function Meet({ params }) {
-  const { user } = useAuth();
+  const { user, addHistory } = useAuth();
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
@@ -137,6 +137,11 @@ export default function Meet({ params }) {
       }
     })();
   }, [params.meet]);
+  useEffect(() => {
+    if (config) {
+      addHistory(config);
+    }
+  }, [config]);
 
   const update = useCallback(async (tbl, is_new=true) => {
     setTable(tbl);
@@ -173,7 +178,7 @@ export default function Meet({ params }) {
           <SplitViewContainer>
             {focus !== null
               ? <AvailableList
-                  time={interpret(config.date, config.time, focus)}
+                  time={interpret(config.date, config.time[0], focus)}
                   list={getAvailable(focus)}
                   style={{ paddingTop: '30px' }}
                 />
@@ -228,7 +233,7 @@ export default function Meet({ params }) {
         {viewGroup === true && viewFocus &&
           <AvailableList
             list={getAvailable(viewFocus)}
-            time={interpret(config.date, config.time, viewFocus)}
+            time={interpret(config.date, config.time[0], viewFocus)}
             style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6 }}
           />}
         <Tables>

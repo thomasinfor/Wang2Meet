@@ -17,6 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const AuthContext = createContext({ user: null });
+function STORAGE_KEY(x) { return "when2meet_" + x; }
 
 export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -56,10 +57,37 @@ export const AuthContextProvider = ({ children }) => {
     return res;
   }
 
+  const [history, setHistory] = useState(null);
+  console.log(history);
+  useEffect(() => {
+    try {
+      setHistory(JSON.parse(window.localStorage.getItem(STORAGE_KEY`history`)) || []);
+    } catch(e) {
+      console.error(e);
+      window.localStorage.removeItem(STORAGE_KEY`history`);
+      setHistory([]);
+    }
+  }, [setHistory]);
+  useEffect(() => {
+    if (history !== null){
+      window.localStorage.setItem(STORAGE_KEY`history`, JSON.stringify(history));
+    }
+  }, [history]);
+  const addHistory = useCallback(config => {
+    setHistory(h => [].concat([{ ...config, collection: undefined }], h.filter(e => e.id !== config.id)).slice(0, 10));
+  }, [setHistory]);
+
   return (
     <ErrorBoundary>
-      <AuthContext.Provider value={{ user, signIn, logOut, updateUser }}>
-        {children}
+      <AuthContext.Provider value={{
+        user,
+        signIn,
+        logOut,
+        updateUser,
+        history: history || [],
+        addHistory
+    }}>
+       {children}
       </AuthContext.Provider>
     </ErrorBoundary>
   );

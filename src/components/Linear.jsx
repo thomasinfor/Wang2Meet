@@ -6,4 +6,5 @@ export default styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
+  box-sizing: border-box;
 `;

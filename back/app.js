@@ -19,6 +19,7 @@ App.post('/create-event', async (req, res) => {
   try {
     const id = uuid();
     events[id] = JSON.parse(JSON.stringify(req.body));
+    events[id].id = id;
     events[id].collection = {};
     res.status(200).json({ id });
   } catch(e) { console.error(e); res.sendStatus(500); }
