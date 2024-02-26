@@ -38,22 +38,24 @@ const Tables = styled.div`
   box-sizing: border-box;
 `;
 const Container = styled.div`
-  width: 45%;
   overflow: auto;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+`;
+const SplitViewContainer = styled(Container)`
+  width: 45%;
   @media (max-width: 700px) {
     width: 100%;
     &.view {
       display: none;
     }
   }
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
 `;
 const AvailableListContainer = styled(Linear)`
-  padding-top: 30px;
   box-sizing: border-box;
   justify-content: flex-start;
 `;
@@ -65,6 +67,7 @@ const SwitchButton = styled.div`
   top: 10px;
   left: 10px;
   opacity: 0.8;
+  z-index: 10;
 `;
 const SmallMenuItem = styled(MenuItem)(({ theme }) => ({
   minHeight: 0
@@ -76,13 +79,13 @@ const Indicator = styled(TableCell)(({ theme }) => ({
   }
 }));
 
-function AvailableList({ list=[] }) {
+function AvailableList({ list=[], ...props }) {
   return (
-    <AvailableListContainer>
+    <AvailableListContainer {...props}>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ background: "#ddd" }}>
               <TableCell align="left">{list.filter(e => e[1]).length}</TableCell>
               <TableCell align="center"></TableCell>
               <TableCell align="right">{list.filter(e => !e[1]).length}</TableCell>
@@ -152,16 +155,19 @@ export default function Meet({ params }) {
 
   const [tab, setTab] = useState("edit");
   const [viewGroup, setViewGroup] = useState(true);
-  const [viewFocus, setViewFocus] = useState(null);
+  const [viewFocus, setViewFocus] = useState([0, 0]);
   const content = !config ? {} : {
     edit: (
       <>
         {name.length === 0 &&
           <Alert severity="info">Sign in to continue</Alert>}
         <Tables>
-          <Container>
+          <SplitViewContainer>
             {focus !== null
-              ? <AvailableList list={Object.entries(config.collection).map(([k, v]) => [k, v[focus[0]][focus[1]]])}/>
+              ? <AvailableList
+                  list={Object.entries(config.collection).map(([k, v]) => [k, v[focus[0]][focus[1]]])}
+                  style={{ paddingTop: '30px' }}
+                />
               : <TableWrapper>
                   <EditTimeTable
                     defaultTable={config.collection[name] || null}
@@ -173,8 +179,8 @@ export default function Meet({ params }) {
                     setValue={update}
                   />
                 </TableWrapper>}
-          </Container>
-          <Container className="view">
+          </SplitViewContainer>
+          <SplitViewContainer className="view">
             <TableWrapper>
               <ViewTimeTable
                 value={config.collection}
@@ -185,7 +191,7 @@ export default function Meet({ params }) {
                 setFocus={setFocus}
               />
             </TableWrapper>
-          </Container>
+          </SplitViewContainer>
         </Tables>
       </>
     ),
@@ -207,21 +213,25 @@ export default function Meet({ params }) {
             </Select>
           </FormControl>
         </div>
-        <TableWrapper>
-          <ViewTimeTable
-            keepFocus
-            value={viewGroup === true ? config.collection
-              : { [viewGroup]: config.collection[viewGroup] }}
-            time={config.time}
-            date={config.date}
-            duration={config.duration}
-            focus={viewFocus}
-            setFocus={setViewFocus}
-          />
-        </TableWrapper>
         {viewGroup === true && viewFocus && <AvailableList list={
           Object.entries(config.collection).map(([k, v]) => [k, v[viewFocus[0]][viewFocus[1]]])
-        }/>}
+        } style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6 }}/>}
+        <Tables>
+          <Container>
+            <TableWrapper>
+              <ViewTimeTable
+                keepFocus
+                value={viewGroup === true ? config.collection
+                  : { [viewGroup]: config.collection[viewGroup] }}
+                time={config.time}
+                date={config.date}
+                duration={config.duration}
+                focus={viewFocus}
+                setFocus={setViewFocus}
+              />
+            </TableWrapper>
+          </Container>
+        </Tables>
       </>
     )
   };
@@ -229,7 +239,7 @@ export default function Meet({ params }) {
   return (
     <main>
       {config &&
-        <Linear style={{ minHeight: 'calc(100vh - 64px)', gap: '10px' }}>
+        <Linear style={{ minHeight: 'calc(100vh - 64px)', gap: '10px', padding: '15px 0' }}>
           <SwitchButton>
             {[
               ["edit", "Editing", EditIcon],
