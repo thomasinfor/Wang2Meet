@@ -8,7 +8,7 @@ import { inRange, pad, Time, dayOfWeek, colorScale } from "@/utils";
 
 const GridElement = styled.td`
   background: #DDD;
-  touch-action: pan-down;
+  touch-action: none;
   border: 1px solid black;
   &.on {
     background: #66aaaa;
@@ -28,6 +28,9 @@ const GridElement = styled.td`
   }
   &.section3 {
     border-top: none;
+  }
+  & * {
+    pointer-events: none;
   }
 `;
 

@@ -12,20 +12,26 @@ const Context = createContext(false);
 
 function Grid({ ...p }) {
   // const theme = useTheme();
-  const { focus, level } = useContext(Context);
-  const style = {};
-  if (level[p.i][p.j] !== null)
-    Object.assign(style, { background: colorScale('#339900', level[p.i][p.j]) });
-  if (focus && p.i == focus[0] && p.j == focus[1])
+  const { focus, level, maxPeople } = useContext(Context);
+  const focused = focus && p.i == focus[0] && p.j == focus[1];
+  const style = { fontSize: '4px' };
+  if (maxPeople !== 0)
+    Object.assign(style, { background: colorScale('#339900', level[p.i][p.j] / maxPeople) });
+  if (focused)
     Object.assign(style, { border: '1px solid red' });
   return (
-    <BaseGrid {...p} style={style}/>
+    <BaseGrid {...p} style={style}>
+      <div style={{ transform: 'scale(2.5)' }}>
+        {focused && maxPeople !== 0 && `${level[p.i][p.j]}/${maxPeople}`}
+      </div>
+    </BaseGrid>
   );
 }
 
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
   time, date, duration,
+  keepFocus=false,
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   const [_focus, _setFocus] = useState(null);
@@ -37,23 +43,23 @@ export default function ViewTimeTable({
     setFocus([i, j]);
   }, [setFocus]);
   const up = useCallback((i=false, j=false) => {
-    if (i === false || j === false)
+    if (!keepFocus && (i === false || j === false))
       setFocus(null);
-  }, [setFocus]);
+  }, [setFocus, keepFocus]);
 
   const totalPeople = useMemo(() => Object.keys(value).length, [value]);
   const available = useMemo(() => tableMap(EMPTY_TABLE, (_, i, j) =>
       Object.entries(value).filter(([k, v]) => v[i][j]).map(e => e[0])), [value, EMPTY_TABLE]);
   const maxPeople = useMemo(() => available.flat().reduce((a, c) => Math.max(a, c.length), 0), [available]);
-  const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length / maxPeople), [available, maxPeople]);
+  const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length), [available, maxPeople]);
 
   return (
-    <Context.Provider value={{ focus, available, level }}>
+    <Context.Provider value={{ focus, available, level, maxPeople }}>
       <TimeTable
         enter={enter}
         down={enter}
         up={up}
-        leave={() => setFocus(null)}
+        leave={() => keepFocus || setFocus(null)}
         Grid={Grid}
         time={time}
         date={date}
