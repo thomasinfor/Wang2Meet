@@ -1,10 +1,16 @@
 require("dotenv").config();
 const express = require('express');
 const { randomUUID } = require('crypto');
-const { Schema, model, connect } = require('mongoose');
+const { Schema, model, connect, Error } = require('mongoose');
 const bodyparser = require("body-parser");
 const cors = require('cors');
-const { v4: uuid } = require('uuid');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+
+const firebaseApp = initializeApp({
+  credential: cert(require("./firebase-service-account.json"))
+});
+const auth = getAuth(firebaseApp);
 
 const port = process.env.PORT || 4000;
 
@@ -14,6 +20,16 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true, validate: { validator: e => e.length > 0 } },
   table: String,
+}, {
+  methods: {
+    async sync(user) {
+      if (this.email !== user.email)
+        this.email = user.email;
+      if (this.name !== user.name)
+        this.name = user.name;
+      await this.save();
+    }
+  }
 }); model("User", userSchema);
 const meetSchema = new Schema({
   _id: { type: "UUID", default: () => randomUUID() },
@@ -25,7 +41,7 @@ const meetSchema = new Schema({
   time: { type: [Number], required: true, validate: {
     validator: e => e.length === 2 && e.every(isInt) && 0 <= e[0] && e[0] <= e[1] && e[1] <= 96
   } },
-  duration: { type: Number, required: true, validate: { validator: e => isInt(e) && e >= 1 } },
+  duration: { type: Number, required: true, validate: { validator: e => isInt(e) && e >= 1 && e <= 35 } },
   title: { type: String, required: true, validate: { validator: e => e.length > 0 } },
   tables: {
     type: [{
@@ -48,11 +64,6 @@ const meetSchema = new Schema({
           date: new Date(`${o.date[0]}-${o.date[1]}-${o.date[2]}`),
           tables: [],
         };
-        if (o.creator) {
-          const user = await model("User").findOne({ email: String(o.creator) });
-          if (!user) return null;
-          o.creator = user._id;
-        }
         return new model("Meet")(o);
       } catch(e) {
         console.error(e);
@@ -79,6 +90,7 @@ const meetSchema = new Schema({
       return res;
     },
     set(user, table) {
+      table = String(table);
       try {
         if (!checkTable(table, this.time[1] - this.time[0], this.duration))
           return false;
@@ -103,19 +115,50 @@ App.use(cors({}));
 App.use(bodyparser.json({ limit: 33 * 1024 * 1024 }));
 App.use(bodyparser.urlencoded({ extended: true, limit: 33 * 1024 * 1024 }));
 
-function errorHandle(f) {
-  return async (req, res) => {
+function wrapper(options={}, f=null) {
+  if (f === null){
+    f = options;
+    options = {};
+  }
+  const { auth=false } = options;
+  return async (req, res, next) => {
     try {
-      await f(req, res);
+      if (auth && !(req.user && req.guser))
+        res.sendStatus(401);
+      else
+        await f(req, res, next);
     } catch(e) {
-      if (e.kind === "UUID")
-        return res.sendStatus(404);
+      if (e instanceof Error.ValidationError || e instanceof Error.CastError)
+        return res.sendStatus(400);
       console.error(e); res.sendStatus(500);
     }
   }
 }
 
-App.post('/create-event', errorHandle(async (req, res) => {
+App.use(wrapper(async (req, res, next) => {
+  req.body = req.body || {};
+  try {
+    const token = req.headers.authorization;
+    if (token === undefined || !token.startsWith('Bearer ')) {
+      next();
+    } else {
+      const guser = await auth.verifyIdToken(token.slice(7));
+      req.guser = guser;
+      req.user = await model("User").findOne({ email: guser.email }).exec();
+      if (!req.user) {
+        req.user = new model("User")({ email: guser.email, name: guser.name || guser.email });
+      }
+      await req.user.sync(req.guser);
+      next();
+    }
+  } catch(e) {
+    console.error(e);
+    next();
+  }
+}));
+
+App.post('/create-event', wrapper(async (req, res) => {
+  if (req.user) req.body.creator = req.user._id;
   const meet = await model("Meet").parse(req.body);
   if (meet === null)
     res.sendStatus(400);
@@ -125,41 +168,20 @@ App.post('/create-event', errorHandle(async (req, res) => {
   }
 }));
 
-// App.get('/me', errorHandle(async (req, res) => {
-//   const user = await model("User").findOne({ email: String(req.body?.email) }).exec();
-//   if (user) {
-//     res.status(200).json(user);
-//   } else {
-//     res.sendStatus(404);
-//   }
-// }));
-
-App.post('/me', errorHandle(async (req, res) => {
-  let { name, email, table } = req.body || {};
-  email = String(email);
-  if (!email) {
-    res.sendStatus(400);
-  } else {
-    let user = await model("User").findOne({ email: email }).exec();
-    if (!user) {
-      user = new model("User")({ email: email, name: name ? String(name) : email });
-      await user.save();
-    }
-    if (!user)
-      res.sendStatus(404);
-    else {
-      if (name)
-        user.name = String(name);
-      if (table && checkTable(String(table))) {
-        user.table = String(table);
-      }
-      await user.save();
-      res.status(200).json(user);
-    }
-  }
+App.get('/me', wrapper({ auth: true }, async (req, res) => {
+  res.status(200).json(req.user);
 }));
 
-App.get('/:id', errorHandle(async (req, res) => {
+App.post('/me', wrapper({ auth: true }, async (req, res) => {
+  let { table } = req.body;
+  if (table && checkTable(String(table))) {
+    req.user.table = String(table);
+  }
+  await req.user.save();
+  res.status(200).json(req.user);
+}));
+
+App.get('/:id', wrapper(async (req, res) => {
   const id = req.params.id;
   const meet = await model("Meet").findById(id).exec();
   if (meet) {
@@ -169,23 +191,17 @@ App.get('/:id', errorHandle(async (req, res) => {
   }
 }));
 
-App.post('/:id', errorHandle(async (req, res) => {
+App.post('/:id', wrapper({ auth: true }, async (req, res) => {
   const id = req.params.id;
   const meet = await model("Meet").findById(id).exec();
   if (meet) {
-    const { name, time, email } = req.body || {};
-    let user = await model("User").findOne({ email: String(email) }).exec();
-    if (!user) {
-      user = new model("User")({ email: String(email), name: name ? String(name) : String(email) });
-      await user.save();
-    } 
-    if (user.name != name) {
-      user.name = String(name);
-      await user.save();
+    const { time } = req.body;
+    if (meet.set(req.user, time)) {
+      await meet.save();
+      res.status(200).json(await meet.dump());
+    } else {
+      res.sendStatus(400);
     }
-    meet.set(user, time);
-    await meet.save();
-    res.status(200).json(await meet.dump());
   } else {
     res.sendStatus(404);
   }

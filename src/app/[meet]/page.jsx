@@ -66,7 +66,9 @@ const AvailableListContainer = styled(Linear)`
 `;
 const TableWrapper = styled.div`
   max-width: 100%;
-  max-height: 95vh;
+  &.constrained {
+    max-height: 95vh;
+  }
 `;
 const SwitchButton = styled.div`
   position: absolute;
@@ -125,7 +127,7 @@ function AvailableList({ list=[], time=false, ...props }) {
 }
 
 export default function Meet({ params }) {
-  const { user, addHistory, delHistory } = useAuth();
+  const { user, request, addHistory, delHistory } = useAuth();
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
@@ -133,7 +135,7 @@ export default function Meet({ params }) {
 
   useEffect(() => {
     (async () => {
-      let res = await fetch(`/api/${params.meet}`);
+      let res = await request('GET', `/api/${params.meet}`);
       if (res.ok) {
         res = await res.json();
         for (let i in res.collection)
@@ -144,7 +146,7 @@ export default function Meet({ params }) {
         router.push("/");
       }
     })();
-  }, [params.meet, delHistory]);
+  }, [params.meet, delHistory, request]);
   useEffect(() => {
     if (config) {
       addHistory(config);
@@ -155,12 +157,8 @@ export default function Meet({ params }) {
     setTable(tbl);
     if (!tbl || !is_new) return;
     const time = dump(tbl);
-    let res = await fetch(`/api/${params.meet}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: user.displayName, time, email: user.email
-      })
+    let res = await request('POST', `/api/${params.meet}`, {
+      body: { time }
     });
     if (!res.ok) {
       window.alert("Update failed");
@@ -170,18 +168,12 @@ export default function Meet({ params }) {
           res.collection[i].table = i === user.email ? tbl : parse(res.collection[i].table);
       setConfig(res);
     }
-  }, [setTable, user]);
+  }, [setTable, user, request]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;
     try {
-      let res = await fetch(`/api/me`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: user.email
-        })
-      });
+      let res = await request('GET', `/api/me`);
       if (res.ok) {
         res = await res.json();
         if (res.table) {
@@ -196,7 +188,7 @@ export default function Meet({ params }) {
       console.error(e);
       window.alert("Operation failed");
     }
-  }, [user, table, setTable, config, update]);
+  }, [user, table, setTable, config, update, request]);
 
   const [tab, setTab] = useState("edit");
   const [viewGroup, setViewGroup] = useState(true);
@@ -282,7 +274,7 @@ export default function Meet({ params }) {
           />}
         <Tables>
           <Container>
-            <TableWrapper>
+            <TableWrapper className="constrained">
               <ViewTimeTable
                 keepFocus
                 value={viewGroup === true ? config.collection

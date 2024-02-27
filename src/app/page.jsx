@@ -30,25 +30,22 @@ const DateRange = styled.div`
 
 export default function Home() {
   const router = useRouter();
-  const { history } = useAuth();
+  const { history, request } = useAuth();
   const [title, setTitle] = useState("");
   const [start, setStart] = useState(new Date().toLocaleDateString('en-CA'));
   const [end, setEnd] = useState(new Date().toLocaleDateString('en-CA'));
   const [time, setTime] = useState([9, 22]);
+  const duration = useMemo(() => (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1, [start, end]);
 
   async function confirm() {
     console.log(title, start, end, time);
-    if (title.length === 0)
-      return window.alert("Please fill in the title.");
-    let res = await fetch(`/api/create-event`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    let res = await request('POST', `/api/create-event`, {
+      body: {
         time: time.map(e => e * 4),
         date: start.split('-').map(e => parseInt(e)),
-        duration: (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1,
+        duration,
         title
-      })
+      }
     });
     if (!res.ok) return;
     res = await res.json();
@@ -67,27 +64,36 @@ export default function Home() {
           justifyContent="center"
         >
           <TextField
-            autoFocus
+            required
+            size="small"
+            autoComplete="off"
             fullWidth
             label="Title"
             variant="outlined"
             value={title}
+            error={!title}
             onChange={e => setTitle(e.target.value)}
           />
           <DateRange>
             <TextField
+              error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(start)) || duration > 35}
+              size="small"
+              autoComplete="off"
               type="date"
-              autoFocus
               variant="outlined"
               value={start}
               onChange={e => setStart(e.target.value)}
             />
             -
             <TextField
+              error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(end)) || duration > 35}
+              size="small"
+              autoComplete="off"
               type="date"
-              autoFocus
               variant="outlined"
               value={end}
+              helperText={duration > 35 && "Maximum 35 days"}
+              sx={{ '& .MuiFormHelperText-root': { mt: 0, height: 0 } }}
               onChange={e => setEnd(e.target.value)}
             />
           </DateRange>
@@ -97,6 +103,7 @@ export default function Home() {
             </Typography>
             <Slider
               // track="inverted"
+              color={time[0] === time[1] ? "error" : "primary"}
               value={time}
               getAriaValueText={v => `${v}.`}
               valueLabelDisplay="auto"
@@ -110,7 +117,13 @@ export default function Home() {
           <Button
             variant="contained"
             onClick={confirm}
-            disabled={time[0] === time[1] || new Date(end).getTime() < new Date(start).getTime()}
+            disabled={[
+              time[0] === time[1],
+              new Date(end).getTime() < new Date(start).getTime(),
+              isNaN(new Date(start)), isNaN(new Date(end)),
+              duration > 35,
+              !title
+            ].some(e => e)}
           >Go</Button>
         </Stack>
         <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, mt: 4, mx: 1, pt: 0, pb: 0, borderRadius: 1.5 }}>

@@ -17,6 +17,8 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckIcon from '@mui/icons-material/Check';
@@ -33,41 +35,33 @@ import { dump, parse, interpret, pad } from "@/utils";
 import { useAuth } from "@/context/Auth";
 
 export default function MySchedule({ params }) {
-  const { user } = useAuth();
+  const { user, request, updateUser } = useAuth();
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (user) (async () => {
-      let res = await fetch(`/api/me`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: user.email, name: user.displayName
-        })
-      });
+      let res = await request('GET', `/api/me`);
       if (res.ok) {
         res = await res.json();
         if (res.table)
           res.table = parse(res.table);
         setInfo(res);
+        setName(res.name);
       } else {
         console.log(await res.text());
         window.alert("Access denied");
       }
     })();
-  }, [user, setInfo]);
+  }, [user, setInfo, request]);
 
   const update = useCallback(async (tbl, is_new=true) => {
     setTable(tbl);
     if (!tbl || !is_new) return;
     const time = dump(tbl);
-    let res = await fetch(`/api/me`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: user.email, table: time,
-      })
+    let res = await request('POST', `/api/me`, {
+      body: { table: time }
     });
     if (!res.ok) {
       window.alert("Update failed");
@@ -77,37 +71,59 @@ export default function MySchedule({ params }) {
         res.table = parse(res.table);
       setInfo(res);
     }
-  }, [setTable, user]);
+  }, [setTable, user, request]);
 
   if (info === null) return "";
   return (
     <main>
       <Linear style={{ minHeight: 'calc(100vh - 64px)', padding: 20 }}>
         {info &&
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-              Default schedule
-            </AccordionSummary>
-            <AccordionDetails>
-              <EditTimeTable
-                defaultTable={info.table || null}
-                value={table}
-                setValue={update}
-              />
-            </AccordionDetails>
-          </Accordion>}
-        {/*<Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-            Default table
-          </AccordionSummary>
-          <AccordionDetails>
-            <EditTimeTable
-              defaultTable={info.table || null}
-              value={table}
-              setValue={update}
-            />
-          </AccordionDetails>
-        </Accordion>*/}
+          <div>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                Name
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    size="small"
+                    autoComplete="off"
+                    fullWidth
+                    label="New name"
+                    variant="outlined"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      try {
+                        await updateUser({
+                          displayName: name.trim()
+                        });
+                      } catch(e) {
+                        console.error(e);
+                        window.alert("Update failed");
+                      }
+                    }}
+                    disabled={name.length === 0}
+                  >Update</Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                Default schedule
+              </AccordionSummary>
+              <AccordionDetails>
+                <EditTimeTable
+                  defaultTable={info.table || null}
+                  value={table}
+                  setValue={update}
+                />
+              </AccordionDetails>
+            </Accordion>
+          </div>}
       </Linear>
     </main>
   );

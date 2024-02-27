@@ -38,17 +38,34 @@ export const AuthContextProvider = ({ children }) => {
     await signOut(auth);
   };
 
+  const request = useCallback(async (method, url, {
+    auth=true,
+    json=true,
+    newToken=false,
+    ...x
+  } = {}) => {
+    console.log(`request to ${url}`);
+    try {
+      const headers = {};
+      if (json) headers['Content-Type'] = 'application/json';
+      if (user && auth) headers['Authorization'] = `Bearer ${await user.getIdToken(newToken)}`;
+      const res = await fetch(url, {
+        ...x,
+        headers: { ...headers, ...(x.headers || {}) },
+        body: x.body && json ? JSON.stringify(x.body) : x.body,
+        method,
+      });
+      return res;
+    } catch(e) {
+      console.error(e);
+      return { ok: false };
+    }
+  }, [user]);
+
   const updateUser = async profile => {
     const res = await updateProfile(auth.currentUser, profile);
     if ("displayName" in profile) {
-      let res = await fetch("/api/update-name", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: auth.currentUser.displayName,
-          email: auth.currentUser.email,
-        })
-      });
+      let res = await request('GET', "/api/me", { newToken: true });
       if (!res.ok) {
         console.log(await res.text());
       }
@@ -83,6 +100,7 @@ export const AuthContextProvider = ({ children }) => {
     <ErrorBoundary>
       <AuthContext.Provider value={{
         user,
+        request,
         signIn,
         logOut,
         updateUser,
