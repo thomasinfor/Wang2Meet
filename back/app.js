@@ -140,7 +140,11 @@ App.post('/me', errorHandle(async (req, res) => {
   if (!email) {
     res.sendStatus(400);
   } else {
-    const user = await model("User").findOne({ email: email }).exec();
+    let user = await model("User").findOne({ email: email }).exec();
+    if (!user) {
+      user = new model("User")({ email: email, name: name ? String(name) : email });
+      await user.save();
+    }
     if (!user)
       res.sendStatus(404);
     else {

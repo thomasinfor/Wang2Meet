@@ -43,7 +43,7 @@ export default function MySchedule({ params }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: user.email
+          email: user.email, name: user.displayName
         })
       });
       if (res.ok) {
