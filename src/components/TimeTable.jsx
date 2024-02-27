@@ -30,6 +30,7 @@ const TimeTd = styled.td`
   background: #fff;
   font-size: 12px;
   left: 0;
+  z-index: 1;
 `;
 const DateCell = styled.td`
   & > span {
@@ -41,7 +42,7 @@ const DateCell = styled.td`
   position: sticky;
   top: 0;
   background: #fff;
-  z-index: 1;
+  z-index: 2;
 `;
 
 export default function TimeTable({

@@ -180,10 +180,12 @@ export default function Meet({ params }) {
           res = parse(res.table);
           const t = cast(res, defaultDate, defaultTime, config.date, config.time, config.duration);
           await update(tableMap(table, (e, i, j) => e || t[i][j]));
-          return;
+        } else {
+          window.alert("Default table not set");
         }
+      } else {
+        window.alert("Operation failed");
       }
-      window.alert("Operation failed");
     } catch(e) {
       console.error(e);
       window.alert("Operation failed");
@@ -207,7 +209,7 @@ export default function Meet({ params }) {
               label="Paste my schedule"
               variant="contained"
               color="primary"
-              onClick={pasteSchedule}
+              onClick={() => { if (window.confirm("Confirm to paste default schedule?")) pasteSchedule(); }}
             />}
         </Stack>
         <Tables>

@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
@@ -35,7 +36,8 @@ import { dump, parse, interpret, pad } from "@/utils";
 import { useAuth } from "@/context/Auth";
 
 export default function MySchedule({ params }) {
-  const { user, request, updateUser } = useAuth();
+  const router = useRouter();
+  const { user, request, updateUser, logOut } = useAuth();
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
   const [name, setName] = useState("");
@@ -76,7 +78,7 @@ export default function MySchedule({ params }) {
   if (info === null) return "";
   return (
     <main>
-      <Linear style={{ minHeight: 'calc(100vh - 64px)', padding: 20 }}>
+      <Linear style={{ minHeight: 'calc(100vh - 64px)', padding: 20, gap: 30 }}>
         {info &&
           <div>
             <Accordion>
@@ -124,6 +126,13 @@ export default function MySchedule({ params }) {
               </AccordionDetails>
             </Accordion>
           </div>}
+        <Chip
+          icon={<LogoutIcon/>}
+          label="Log out"
+          variant="contained"
+          color="primary"
+          onClick={() => { if (window.confirm("Confirm to log out?")) { logOut(); router.push("/"); } }}
+        />
       </Linear>
     </main>
   );
