@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
-import { inRange, pad, Time, dayOfWeek, colorScale, tableMap } from "@/utils";
+import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Context = createContext(false);
 
@@ -30,7 +30,7 @@ function Grid({ ...p }) {
 
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
-  time, date, duration,
+  time=defaultTime, date=defaultDate, duration=defaultDuration,
   keepFocus=false,
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);

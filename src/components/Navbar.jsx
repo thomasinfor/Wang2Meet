@@ -9,6 +9,7 @@ import Avatar from '@mui/material/Avatar';
 import EditIcon from '@mui/icons-material/Edit';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShareIcon from '@mui/icons-material/Share';
 import { useAuth } from "@/context/Auth";
 
@@ -26,20 +27,26 @@ export default function Navbar() {
         </IconButton>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
         </Typography>
-        {user && <Chip sx={{ maxWidth: '190px' }} label={user.displayName} icon={<EditIcon/>} onClick={async () => {
-          try {
-            const name = window.prompt("New name:");
-            if (!name) return;
-            if (name.length === 0)
-              return window.alert("Can't set empty name");
-            const res = await updateUser({
-              displayName: name.trim()
-            });
-          } catch(e) {
-            console.error(e);
-            window.alert("Update failed");
-          }
-        }}/>}
+        {user &&
+          <>
+            <Chip sx={{ maxWidth: '150px' }} label={user.displayName} icon={<EditIcon/>} onClick={async () => {
+              try {
+                const name = window.prompt("New name:");
+                if (!name) return;
+                if (name.length === 0)
+                  return window.alert("Can't set empty name");
+                const res = await updateUser({
+                  displayName: name.trim()
+                });
+              } catch(e) {
+                console.error(e);
+                window.alert("Update failed");
+              }
+            }}/>
+            <IconButton size="large" color="inherit" onClick={() => router.push("/me")}>
+              <CalendarMonthIcon />
+            </IconButton>
+          </>}
         <IconButton size="large" color="inherit" onClick={() => {
           if (!user) {
             signIn();

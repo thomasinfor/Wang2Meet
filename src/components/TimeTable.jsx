@@ -4,7 +4,7 @@ import Image from "next/image";
 import styled from "@emotion/styled";
 import { useTheme } from '@mui/material/styles';
 import Linear from "@/components/Linear";
-import { pad, Time, dayOfWeek } from "@/utils";
+import { pad, Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Table = styled.table`
   border-spacing: 0;
@@ -44,11 +44,9 @@ const DateCell = styled.td`
   z-index: 1;
 `;
 
-const defaultTime = [0, 48];
-const defaultDate = [2024, 6, 1];
 export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
-  time=defaultTime, date=defaultDate, duration=5,
+  time=defaultTime, date=defaultDate, duration=defaultDuration,
   Grid,
   disabled=false,
 }) {

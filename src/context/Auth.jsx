@@ -75,6 +75,9 @@ export const AuthContextProvider = ({ children }) => {
   const addHistory = useCallback(config => {
     setHistory(h => [].concat([{ ...config, collection: undefined }], h.filter(e => e.id !== config.id)).slice(0, 10));
   }, [setHistory]);
+  const delHistory = useCallback(id => {
+    setHistory(h => h.filter(e => e.id !== id));
+  }, [setHistory]);
 
   return (
     <ErrorBoundary>
@@ -84,7 +87,8 @@ export const AuthContextProvider = ({ children }) => {
         logOut,
         updateUser,
         history: history || [],
-        addHistory
+        addHistory,
+        delHistory,
     }}>
        {children}
       </AuthContext.Provider>

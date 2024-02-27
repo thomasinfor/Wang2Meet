@@ -127,7 +127,7 @@ export default function Home() {
                   <IconButton edge="end" onClick={() => router.push("/" + id)}>
                     <LaunchIcon />
                   </IconButton>
-                }>
+                } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
                   <ListItemText sx={{ my: 0.5 }} primary={title} secondary={
                     `[${t1[0]}/${t1[1]}/${t1[2]} ${t1[3]} ~ ${t2[0]}/${t2[1]}/${t2[2]} ${t2[3]}] [${pad(t1[4], 2)}:${pad(t1[5], 2)} ~ ${pad(t2[4], 2)}:${pad(t2[5], 2)}]`
                   }/>

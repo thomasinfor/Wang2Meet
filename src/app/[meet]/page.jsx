@@ -17,14 +17,17 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Stack from '@mui/material/Stack';
+import Divider from '@mui/material/Divider';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
-import { dump, parse, interpret, pad } from "@/utils";
+import { dump, parse, interpret, pad, defaultTime, defaultDate, tableMap, cast } from "@/utils";
 import { useAuth } from "@/context/Auth";
 
 const Tables = styled.div`
@@ -122,7 +125,7 @@ function AvailableList({ list=[], time=false, ...props }) {
 }
 
 export default function Meet({ params }) {
-  const { user, addHistory } = useAuth();
+  const { user, addHistory, delHistory } = useAuth();
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
@@ -137,10 +140,11 @@ export default function Meet({ params }) {
           res.collection[i].table = parse(res.collection[i].table);
         setConfig(res);
       } else {
+        delHistory(params.meet);
         router.push("/");
       }
     })();
-  }, [params.meet]);
+  }, [params.meet, delHistory]);
   useEffect(() => {
     if (config) {
       addHistory(config);
@@ -159,7 +163,7 @@ export default function Meet({ params }) {
       })
     });
     if (!res.ok) {
-      window.alert("更新失敗");
+      window.alert("Update failed");
     } else {
       res = await res.json();
       for (let i in res.collection)
@@ -167,6 +171,32 @@ export default function Meet({ params }) {
       setConfig(res);
     }
   }, [setTable, user]);
+
+  const pasteSchedule = useCallback(async () => {
+    if (!user || !table) return;
+    try {
+      let res = await fetch(`/api/me`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email
+        })
+      });
+      if (res.ok) {
+        res = await res.json();
+        if (res.table) {
+          res = parse(res.table);
+          const t = cast(res, defaultDate, defaultTime, config.date, config.time, config.duration);
+          await update(tableMap(table, (e, i, j) => e || t[i][j]));
+          return;
+        }
+      }
+      window.alert("Operation failed");
+    } catch(e) {
+      console.error(e);
+      window.alert("Operation failed");
+    }
+  }, [user, table, setTable, config, update]);
 
   const [tab, setTab] = useState("edit");
   const [viewGroup, setViewGroup] = useState(true);
@@ -178,6 +208,16 @@ export default function Meet({ params }) {
     edit: (
       <>
         {Boolean(user) || <Alert severity="info">Sign in to continue</Alert>}
+        <Stack direction="row" spacing={2}>
+          {user &&
+            <Chip
+              icon={<ContentPasteGoIcon/>}
+              label="Paste my schedule"
+              variant="contained"
+              color="primary"
+              onClick={pasteSchedule}
+            />}
+        </Stack>
         <Tables>
           <SplitViewContainer>
             {focus !== null

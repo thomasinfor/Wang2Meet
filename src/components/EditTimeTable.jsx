@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
-import { inRange, pad, Time, dayOfWeek, colorScale, tableMap } from "@/utils";
+import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Context = createContext(false);
 
@@ -22,7 +22,7 @@ function Grid({ ...p }) {
 
 export default function EditTimeTable({
   value: _value, setValue,
-  time, date, duration,
+  time=defaultTime, date=defaultDate, duration=defaultDuration,
   disabled=false,
   defaultTable=null,
 }) {
