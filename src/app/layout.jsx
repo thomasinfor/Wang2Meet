@@ -1,4 +1,5 @@
 import { Roboto_Mono  } from "next/font/google";
+import Script from 'next/script';
 import "./global.css";
 import Theme from '@/components/Theme';
 import Navbar from '@/components/Navbar';
@@ -15,6 +16,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/*<!-- Google tag (gtag.js) -->*/}
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-0P4MSW3QPS"></Script>
+        <Script>{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-0P4MSW3QPS');
+        `}</Script>
         <link rel="manifest" href="/manifest.webmanifest"/>
       </head>
       <body className={inter.className} style={{ margin: 0 }}>
