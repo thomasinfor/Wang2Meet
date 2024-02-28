@@ -272,7 +272,7 @@ export default function Meet({ params }) {
           <AvailableList
             list={getAvailable(viewFocus)}
             time={interpret(config.date, config.time[0], viewFocus)}
-            style={{ position: 'sticky', top: '5px', zIndex: 2, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
+            style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
           />}
         <Tables>
           <Container>
