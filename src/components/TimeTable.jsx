@@ -49,7 +49,7 @@ export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   Grid,
-  disabled=false,
+  disabled=false, hideDate=false,
 }) {
   const [randomID, setRandomID] = useState(0);
   useEffect(() => { setRandomID(parseInt(Math.random() * 1e8)); }, []);
@@ -100,8 +100,8 @@ export default function TimeTable({
           <td></td>
           {dates.map((date, j) =>
             <DateCell key={j}>
-              <span>{date.getMonth()+1}/{date.getDate()}</span>
-              {"\n"}{dayOfWeek[(date.getDay()) % 7]}
+              {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}
+              {dayOfWeek[(date.getDay()) % 7]}
             </DateCell>)}
         </tr>
         {ROW.map((time, i) =>

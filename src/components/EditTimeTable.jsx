@@ -24,7 +24,7 @@ export default function EditTimeTable({
   value: _value, setValue,
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   disabled=false,
-  defaultTable=null,
+  defaultTable=null, ...props
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   useEffect(() => {
@@ -65,6 +65,7 @@ export default function EditTimeTable({
         date={date}
         duration={duration}
         disabled={disabled}
+        {...props}
       />
     </Context.Provider>
   );

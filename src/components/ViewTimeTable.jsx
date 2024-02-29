@@ -31,7 +31,7 @@ function Grid({ ...p }) {
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
-  keepFocus=false,
+  keepFocus=false, ...props
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   const [_focus, _setFocus] = useState(null);
@@ -64,6 +64,7 @@ export default function ViewTimeTable({
         time={time}
         date={date}
         duration={duration}
+        {...props}
       />
     </Context.Provider>
   );

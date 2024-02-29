@@ -122,6 +122,7 @@ export default function MySchedule({ params }) {
                   defaultTable={info.table || null}
                   value={table}
                   setValue={update}
+                  hideDate
                 />
               </AccordionDetails>
             </Accordion>
