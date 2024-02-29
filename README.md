@@ -1,4 +1,6 @@
-# When2meet 2.0 (<https://w2m.wang.works/>)
+# Wang2Meet (<https://w2m.wang.works/>)
+
+***Wang2Meet, when we want to meet***
 
 Based on [When2meet](https://www.when2meet.com/)
 - 蒐集參與者有空的時間

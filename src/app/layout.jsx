@@ -8,8 +8,8 @@ import { AuthContextProvider } from "@/context/Auth";
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "when2meet 2.0",
-  description: "when2meet 2.0",
+  title: "Wang2Meet",
+  description: "Wang2Meet",
 };
 
 export default function RootLayout({ children }) {

@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const AuthContext = createContext({ user: null });
-function STORAGE_KEY(x) { return "when2meet_" + x; }
+function STORAGE_KEY(x) { return "Wang2Meet_" + x; }
 
 export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);

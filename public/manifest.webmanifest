@@ -4,9 +4,9 @@
     "display": "standalone",
     "scope": "/",
     "start_url": "/",
-    "name": "when2meet",
+    "name": "Wang2Meet",
     "short_name": "W2M",
-    "description": "when2meet 2.0",
+    "description": "Wang2Meet",
     "icons": [
         {
             "src": "/icon-192x192.png",
