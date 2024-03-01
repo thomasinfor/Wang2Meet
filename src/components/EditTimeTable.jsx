@@ -24,6 +24,7 @@ export default function EditTimeTable({
   value: _value, setValue,
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   disabled=false,
+  bufferTime=false, alarm=()=>{},
   defaultTable=null, ...props
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
@@ -42,9 +43,12 @@ export default function EditTimeTable({
     if (sel) {
       const res = tableMap(EMPTY_TABLE, (e, i, j) => newTable(i, j));
       setValue(res);
+      if (bufferTime) {
+        setCD(1000 * bufferTime);
+      }
     }
     setSel(null);
-  }, [sel, setSel, newTable]);
+  }, [sel, setSel, newTable, bufferTime]);
   const down = useCallback((i, j) => {
     // console.log("down", i, j);
     setSel([[i, j], [i, j]]);
@@ -53,6 +57,23 @@ export default function EditTimeTable({
     // console.log("enter", i, j);
     setSel(sel => sel && [sel[0], [i, j]]);
   }, [setSel]);
+
+  const [CD, setCD] = useState(0);
+  useEffect(() => {
+    if (bufferTime) {
+      const id = setInterval(() => {
+        setCD(e => {
+          if (e === 0) return 0;
+          const res = Math.max(0, e - 40);
+          if (res === 0) {
+            alarm();
+          }
+          return res;
+        })
+      }, 40);
+      return () => clearInterval(id);
+    }
+  }, [bufferTime, alarm, setCD]);
 
   return (
     <Context.Provider value={{ newTable, covered }}>
@@ -65,6 +86,7 @@ export default function EditTimeTable({
         date={date}
         duration={duration}
         disabled={disabled}
+        // indicator={bufferTime && 1 - (CD / bufferTime / 1000)}
         {...props}
       />
     </Context.Provider>

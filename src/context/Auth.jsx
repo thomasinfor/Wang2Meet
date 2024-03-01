@@ -44,7 +44,7 @@ export const AuthContextProvider = ({ children }) => {
     newToken=false,
     ...x
   } = {}) => {
-    console.log(`request to ${url}`);
+    // console.log(`request to ${url}`);
     try {
       const headers = {};
       if (json) headers['Content-Type'] = 'application/json';

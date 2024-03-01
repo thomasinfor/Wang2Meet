@@ -44,11 +44,24 @@ const DateCell = styled.td`
   background: #fff;
   z-index: 2;
 `;
+const Indicator = styled.div`
+  position: sticky;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 0;
+  outline: 2px solid lightgreen;
+  border-radius: 50%;
+  z-index: 3;
+  transition: all 0.01s linear;
+`;
+const Container = styled.div`
+`;
 
 export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
-  Grid,
+  Grid, indicator=false,
   disabled=false, hideDate=false,
 }) {
   const [randomID, setRandomID] = useState(0);
@@ -94,34 +107,40 @@ export default function TimeTable({
   }, [enter, up, randomID]);
 
   return (
-    <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
-      <tbody>
-        <tr>
-          <td></td>
-          {dates.map((date, j) =>
-            <DateCell key={j}>
-              {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}
-              {dayOfWeek[(date.getDay()) % 7]}
-            </DateCell>)}
-        </tr>
-        {ROW.map((time, i) =>
-          <tr key={i}>
+    <Container>
+      {indicator !== false && (
+        Number(indicator) === indicator ? <Indicator style={{ width: `${indicator * 100}%` }}/>
+        : <Indicator style={{ background: indicator }}/>
+      )}
+      <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
+        <tbody>
+          <tr>
+            <td></td>
+            {dates.map((date, j) =>
+              <DateCell key={j}>
+                {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}
+                {dayOfWeek[(date.getDay()) % 7]}
+              </DateCell>)}
+          </tr>
+          {ROW.map((time, i) =>
+            <tr key={i}>
+              <TimeTd>
+                {new Time(time).section === 0 && new Time(time).timeStr}
+              </TimeTd>
+              {COL.map((day, j) =>
+                <Grid
+                  key={j}
+                  id={`${i}-${j}-${randomID}`}
+                  {...{ i, j, time, date, down, enter, leave }}
+                />)}
+            </tr>)}
+          <tr>
             <TimeTd>
-              {new Time(time).section === 0 && new Time(time).timeStr}
+              {new Time(ROW[ROW.length-1]+1).section === 0 && new Time(ROW[ROW.length-1]+1).timeStr}
             </TimeTd>
-            {COL.map((day, j) =>
-              <Grid
-                key={j}
-                id={`${i}-${j}-${randomID}`}
-                {...{ i, j, time, date, down, enter, leave }}
-              />)}
-          </tr>)}
-        <tr>
-          <TimeTd>
-            {new Time(ROW[ROW.length-1]+1).section === 0 && new Time(ROW[ROW.length-1]+1).timeStr}
-          </TimeTd>
-        </tr>
-      </tbody>
-    </Table>
+          </tr>
+        </tbody>
+      </Table>
+    </Container>
   );
 }

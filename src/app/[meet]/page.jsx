@@ -153,20 +153,26 @@ export default function Meet({ params }) {
 
   const update = useCallback(async (tbl, is_new=true) => {
     setTable(tbl);
-    if (!tbl || !is_new) return;
-    const time = dump(tbl);
+    if (is_new) {
+      setConfig(c => ({ ...c, collection: { ...c.collection, [user.email]: { ...c.collection[user.email], table: tbl } } }));
+    }
+  }, [setTable, user]);
+
+  const sync = useCallback(async () => {
+    const time = dump(table);
     let res = await request('POST', `/api/${params.meet}`, {
       body: { time }
     });
     if (!res.ok) {
-      window.alert("Update failed");
+      return false;
     } else {
       res = await res.json();
       for (let i in res.collection)
-          res.collection[i].table = i === user.email ? tbl : parse(res.collection[i].table);
+          res.collection[i].table = i === user.email ? table : parse(res.collection[i].table);
       setConfig(res);
+      return true;
     }
-  }, [setTable, user, request]);
+  }, [user, request, table]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;
@@ -241,6 +247,8 @@ export default function Meet({ params }) {
                     duration={config.duration}
                     value={table}
                     setValue={update}
+                    bufferTime={1}
+                    alarm={sync}
                   />
                 </TableWrapper>}
           </SplitViewContainer>

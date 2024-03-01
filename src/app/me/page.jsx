@@ -60,8 +60,10 @@ export default function MySchedule({ params }) {
 
   const update = useCallback(async (tbl, is_new=true) => {
     setTable(tbl);
-    if (!tbl || !is_new) return;
-    const time = dump(tbl);
+  }, [setTable]);
+
+  const sync = useCallback(async () => {
+    const time = dump(table);
     let res = await request('POST', `/api/me`, {
       body: { table: time }
     });
@@ -73,7 +75,7 @@ export default function MySchedule({ params }) {
         res.table = parse(res.table);
       setInfo(res);
     }
-  }, [setTable, user, request]);
+  }, [request, table, setInfo]);
 
   if (info === null) return "";
   return (
@@ -123,6 +125,8 @@ export default function MySchedule({ params }) {
                   value={table}
                   setValue={update}
                   hideDate
+                  bufferTime={1}
+                  alarm={sync}
                 />
               </AccordionDetails>
             </Accordion>
