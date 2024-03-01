@@ -158,8 +158,8 @@ export default function Meet({ params }) {
     }
   }, [setTable, user]);
 
-  const sync = useCallback(async () => {
-    const time = dump(table);
+  const sync = useCallback(async (t) => {
+    const time = dump(t || table);
     let res = await request('POST', `/api/${params.meet}`, {
       body: { time }
     });
@@ -168,7 +168,7 @@ export default function Meet({ params }) {
     } else {
       res = await res.json();
       for (let i in res.collection)
-          res.collection[i].table = i === user.email ? table : parse(res.collection[i].table);
+          res.collection[i].table = i === user.email ? (t || table) : parse(res.collection[i].table);
       setConfig(res);
       return true;
     }
@@ -183,7 +183,9 @@ export default function Meet({ params }) {
         if (res.table) {
           res = parse(res.table);
           const t = cast(res, defaultDate, defaultTime, config.date, config.time, config.duration);
-          await update(tableMap(table, (e, i, j) => e || t[i][j]));
+          const newTable = tableMap(table, (e, i, j) => e || t[i][j]);
+          await update(newTable);
+          await sync(newTable);
         } else {
           window.alert("Default table not set");
         }
@@ -194,7 +196,7 @@ export default function Meet({ params }) {
       console.error(e);
       window.alert("Operation failed");
     }
-  }, [user, table, setTable, config, update, request]);
+  }, [user, table, setTable, config, update, request, sync]);
 
   const [tab, setTab] = useState("edit");
   const [viewGroup, setViewGroup] = useState(true);
