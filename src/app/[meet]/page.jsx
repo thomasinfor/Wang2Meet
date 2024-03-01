@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
@@ -66,9 +66,7 @@ const AvailableListContainer = styled(Linear)`
 `;
 const TableWrapper = styled.div`
   max-width: 100%;
-  &.constrained {
-    max-height: 95vh;
-  }
+  max-height: 95vh;
 `;
 const SwitchButton = styled.div`
   position: absolute;
@@ -198,6 +196,20 @@ export default function Meet({ params }) {
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
   })), [config]);
+
+  const refs = [useRef(null), useRef(null)];
+  function syncScroll(i) {
+    return {
+      ref: refs[i],
+      onScroll: scroll => {
+        if (refs[1-i]) {
+          refs[1-i].current.scrollTop = scroll.target.scrollTop;
+          refs[1-i].current.scrollLeft = scroll.target.scrollLeft;
+        }
+      }
+    }
+  }
+
   const content = !config ? {} : {
     edit: (
       <>
@@ -213,7 +225,7 @@ export default function Meet({ params }) {
             />}
         </Stack>
         <Tables>
-          <SplitViewContainer>
+          <SplitViewContainer {...syncScroll(0)}>
             {focus !== null
               ? <AvailableList
                   time={interpret(config.date, config.time[0], focus)}
@@ -232,7 +244,7 @@ export default function Meet({ params }) {
                   />
                 </TableWrapper>}
           </SplitViewContainer>
-          <SplitViewContainer className="view">
+          <SplitViewContainer className="view" {...syncScroll(1)}>
             <TableWrapper>
               <ViewTimeTable
                 value={config.collection}
