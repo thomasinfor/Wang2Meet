@@ -319,7 +319,7 @@ export default function Meet({ params }) {
   return (
     <main>
       {config &&
-        <Linear style={{ minHeight: 'calc(100vh - 64px)', gap: '10px', padding: '15px 0' }}>
+        <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0' }}>
           <SwitchButton>
             {[
               ["edit", "Editing", EditIcon],

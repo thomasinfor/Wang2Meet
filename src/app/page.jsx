@@ -54,7 +54,7 @@ export default function Home() {
 
   return (
     <main>
-      <Linear style={{ minHeight: 'calc(100vh - 64px)', padding: '20px 0', gap: '20px' }}>
+      <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: '20px 0', gap: '20px' }}>
         <Stack
           spacing={3}
           direction="row"

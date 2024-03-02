@@ -4,6 +4,7 @@ import "./global.css";
 import Theme from '@/components/Theme';
 import Navbar from '@/components/Navbar';
 import { AuthContextProvider } from "@/context/Auth";
+import { StatusContextProvider } from "@/context/Status";
 
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
@@ -30,8 +31,10 @@ export default function RootLayout({ children }) {
       <body className={inter.className} style={{ margin: 0 }}>
         <Theme>
           <AuthContextProvider>
-            <Navbar/>
-            {children}
+            <StatusContextProvider>
+              <Navbar/>
+              {children}
+            </StatusContextProvider>
           </AuthContextProvider>
         </Theme>
       </body>

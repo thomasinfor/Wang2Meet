@@ -3,7 +3,9 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import styled from "@emotion/styled";
 import { useTheme } from '@mui/material/styles';
+import CircularProgress from '@mui/material/CircularProgress';
 import Linear from "@/components/Linear";
+import CheckIcon from '@mui/icons-material/Check';
 import { pad, Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Table = styled.table`
@@ -28,7 +30,7 @@ const TimeTd = styled.td`
   font-size: smaller;
   position: sticky;
   background: #fff;
-  font-size: 12px;
+  font-size: 11px;
   left: 0;
   z-index: 1;
 `;
@@ -44,24 +46,13 @@ const DateCell = styled.td`
   background: #fff;
   z-index: 2;
 `;
-const Indicator = styled.div`
-  position: sticky;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 0;
-  outline: 2px solid lightgreen;
-  border-radius: 50%;
-  z-index: 3;
-  transition: all 0.01s linear;
-`;
 const Container = styled.div`
 `;
 
 export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
-  Grid, indicator=false,
+  Grid, corner=null,
   disabled=false, hideDate=false,
 }) {
   const [randomID, setRandomID] = useState(0);
@@ -108,14 +99,10 @@ export default function TimeTable({
 
   return (
     <Container>
-      {indicator !== false && (
-        Number(indicator) === indicator ? <Indicator style={{ width: `${indicator * 100}%` }}/>
-        : <Indicator style={{ background: indicator }}/>
-      )}
       <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
         <tbody>
           <tr>
-            <td></td>
+            <td>{corner}</td>
             {dates.map((date, j) =>
               <DateCell key={j}>
                 {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}

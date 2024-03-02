@@ -80,7 +80,7 @@ export default function MySchedule({ params }) {
   if (info === null) return "";
   return (
     <main>
-      <Linear style={{ minHeight: 'calc(100vh - 64px)', padding: 20, gap: 30 }}>
+      <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: 20, gap: 30 }}>
         {info &&
           <div>
             <Accordion>

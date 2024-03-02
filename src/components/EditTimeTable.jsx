@@ -6,7 +6,10 @@ import { useTheme } from '@mui/material/styles';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
+import CircularProgress from '@mui/material/CircularProgress';
+import CheckIcon from '@mui/icons-material/Check';
 import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
+import { useStatus } from "@/context/Status";
 
 const Context = createContext(false);
 
@@ -27,6 +30,8 @@ export default function EditTimeTable({
   bufferTime=false, alarm=()=>{},
   defaultTable=null, ...props
 }) {
+  const { setIndicator } = useStatus();
+  const [synced, setSynced] = useState(true);
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   useEffect(() => {
     if (defaultTable)
@@ -44,7 +49,9 @@ export default function EditTimeTable({
       const res = tableMap(EMPTY_TABLE, (e, i, j) => newTable(i, j));
       setValue(res);
       if (bufferTime) {
-        setCD(1000 * bufferTime);
+        const t = new Date().getTime();
+        setCD([t, t + 1000 * bufferTime]);
+        setSynced(false);
       }
     }
     setSel(null);
@@ -58,22 +65,28 @@ export default function EditTimeTable({
     setSel(sel => sel && [sel[0], [i, j]]);
   }, [setSel]);
 
-  const [CD, setCD] = useState(0);
+  const [CD, setCD] = useState(null); // [now, ddl]
   useEffect(() => {
     if (bufferTime) {
       const id = setInterval(() => {
         setCD(e => {
-          if (e === 0) return 0;
-          const res = Math.max(0, e - 40);
-          if (res === 0) {
-            alarm();
+          if (!e || e[0] === e[1]) return e;
+          const now = Math.min(new Date().getTime(), e[1]);
+          if (now === e[1]) {
+            (async () => {
+              await alarm();
+              setSynced(true);
+            })();
           }
-          return res;
+          return [now, e[1]];
         })
-      }, 40);
+      }, 10);
       return () => clearInterval(id);
     }
   }, [bufferTime, alarm, setCD]);
+  // useEffect(() => {
+  //   setIndicator(CD === null ? 1 : 1 - ((CD[1] - CD[0]) / bufferTime / 1000));
+  // }, [CD]);
 
   return (
     <Context.Provider value={{ newTable, covered }}>
@@ -86,7 +99,9 @@ export default function EditTimeTable({
         date={date}
         duration={duration}
         disabled={disabled}
-        // indicator={bufferTime && 1 - (CD / bufferTime / 1000)}
+        corner={bufferTime ? (synced
+          ? <CheckIcon sx={{ fontSize: 15 }} color="primary"/>
+          : <CircularProgress size={15}/>) : null}
         {...props}
       />
     </Context.Provider>
