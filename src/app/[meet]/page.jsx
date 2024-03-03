@@ -24,6 +24,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
@@ -156,6 +157,7 @@ export default function Meet({ params }) {
     if (is_new) {
       setConfig(c => ({ ...c, collection: { ...c.collection, [user.email]: { ...c.collection[user.email], table: tbl } } }));
     }
+    return tbl;
   }, [setTable, user]);
 
   const sync = useCallback(async (t) => {
@@ -183,9 +185,7 @@ export default function Meet({ params }) {
         if (res.table) {
           res = parse(res.table);
           const t = cast(res, defaultDate, defaultTime, config.date, config.time, config.duration);
-          const newTable = tableMap(table, (e, i, j) => e || t[i][j]);
-          await update(newTable);
-          await sync(newTable);
+          await sync(await update(tableMap(table, (e, i, j) => e || t[i][j])));
         } else {
           window.alert("Default table not set");
         }
@@ -239,6 +239,17 @@ export default function Meet({ params }) {
               color="primary"
               onClick={() => { if (window.confirm("Confirm to paste default schedule?")) pasteSchedule(); }}
             />}
+          <Chip
+            icon={<RestartAltIcon/>}
+            label="Clear all"
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              if (window.confirm("Confirm to clear schedule?")) {
+                update(tableMap(table, () => false)).then(sync);
+              }
+            }}
+          />
         </Stack>
         <Tables>
           <SplitViewContainer style={{ display: focus === null ? 'none' : undefined }}>
