@@ -69,11 +69,13 @@ export default function MySchedule({ params }) {
     });
     if (!res.ok) {
       window.alert("Update failed");
+      return false;
     } else {
       res = await res.json();
       if (res.table)
         res.table = parse(res.table);
       setInfo(res);
+      return true;
     }
   }, [request, table, setInfo]);
 

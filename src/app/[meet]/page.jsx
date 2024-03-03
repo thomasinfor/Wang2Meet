@@ -210,13 +210,21 @@ export default function Meet({ params }) {
     return {
       ref: refs[i],
       onScroll: scroll => {
-        if (refs[1-i]) {
+        if (refs[1-i].current) {
           refs[1-i].current.scrollTop = scroll.target.scrollTop;
           refs[1-i].current.scrollLeft = scroll.target.scrollLeft;
         }
       }
     }
   }
+  useEffect(() => {
+    if (!focus) {
+      if (refs[0].current && refs[1].current) {
+        refs[0].current.scrollTop = refs[1].current.scrollTop;
+        refs[0].current.scrollLeft = refs[1].current.scrollLeft;
+      }
+    }
+  }, [focus]);
 
   const content = !config ? {} : {
     edit: (
@@ -233,26 +241,28 @@ export default function Meet({ params }) {
             />}
         </Stack>
         <Tables>
-          <SplitViewContainer {...syncScroll(0)}>
-            {focus !== null
-              ? <AvailableList
-                  time={interpret(config.date, config.time[0], focus)}
-                  list={getAvailable(focus)}
-                  style={{ paddingTop: '30px' }}
-                />
-              : <TableWrapper>
-                  <EditTimeTable
-                    defaultTable={config.collection[user?.email]?.table || null}
-                    disabled={!user}
-                    time={config.time}
-                    date={config.date}
-                    duration={config.duration}
-                    value={table}
-                    setValue={update}
-                    bufferTime={1}
-                    alarm={sync}
-                  />
-                </TableWrapper>}
+          <SplitViewContainer style={{ display: focus === null ? 'none' : undefined }}>
+            {focus &&
+              <AvailableList
+                time={interpret(config.date, config.time[0], focus)}
+                list={getAvailable(focus)}
+                style={{ paddingTop: '30px' }}
+              />}
+          </SplitViewContainer>
+          <SplitViewContainer {...syncScroll(0)} style={{ display: focus !== null ? 'none' : undefined }}>
+            <TableWrapper>
+              <EditTimeTable
+                defaultTable={config.collection[user?.email]?.table || null}
+                disabled={!user}
+                time={config.time}
+                date={config.date}
+                duration={config.duration}
+                value={table}
+                setValue={update}
+                bufferTime={1}
+                alarm={sync}
+              />
+            </TableWrapper>
           </SplitViewContainer>
           <SplitViewContainer className="view" {...syncScroll(1)}>
             <TableWrapper>

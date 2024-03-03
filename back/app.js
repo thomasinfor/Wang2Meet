@@ -55,6 +55,7 @@ const meetSchema = new Schema({
     default: [],
   },
 }, {
+  optimisticConcurrency: true,
   statics: {
     async parse(o) {
       try {
@@ -89,22 +90,28 @@ const meetSchema = new Schema({
         res.creator = { name: this.creator.name, email: this.creator.email };
       return res;
     },
-    set(user, table) {
+    async set(user, table, save=false) {
       table = String(table);
-      try {
-        if (!checkTable(table, this.time[1] - this.time[0], this.duration))
-          return false;
-        for (let i = 0; i < this.tables.length; i++)
-          if (this.tables[i].user === user._id) {
-            this.tables[i].table = table;
-            return true;
-          }
-        this.tables.push({ user: user._id, table });
-        return true;
-      } catch(e) {
-        console.error(e);
+      if (!checkTable(table, this.time[1] - this.time[0], this.duration))
         return false;
+      for (let i = 0; i < this.tables.length; i++) {
+        if (this.tables[i].user.equals(user._id)) {
+          if (this.tables[i].table === table)
+            return true;
+          if (table.search("1") === -1) {
+            this.tables.splice(i, 1);
+          } else {
+            this.tables[i].table = table;
+          }
+          if (save) await this.save();
+          return true;
+        }
       }
+      if (table.search("1") !== -1) {
+        this.tables.push({ user: user._id, table });
+        if (save) await this.save();
+      }
+      return true;
     }
   }
 }); model("Meet", meetSchema);
@@ -116,7 +123,7 @@ App.use(bodyparser.json({ limit: 33 * 1024 * 1024 }));
 App.use(bodyparser.urlencoded({ extended: true, limit: 33 * 1024 * 1024 }));
 
 function wrapper(options={}, f=null) {
-  if (f === null){
+  if (f === null) {
     f = options;
     options = {};
   }
@@ -130,6 +137,8 @@ function wrapper(options={}, f=null) {
     } catch(e) {
       if (e instanceof Error.ValidationError || e instanceof Error.CastError)
         return res.sendStatus(400);
+      if (e instanceof Error.VersionError)
+        return res.sendStatus(409);
       console.error(e); res.sendStatus(500);
     }
   }
@@ -196,8 +205,7 @@ App.post('/:id', wrapper({ auth: true }, async (req, res) => {
   const meet = await model("Meet").findById(id).exec();
   if (meet) {
     const { time } = req.body;
-    if (meet.set(req.user, time)) {
-      await meet.save();
+    if (await meet.set(req.user, time, true)) {
       res.status(200).json(await meet.dump());
     } else {
       res.sendStatus(400);

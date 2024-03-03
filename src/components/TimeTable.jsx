@@ -53,7 +53,7 @@ export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   Grid, corner=null,
-  disabled=false, hideDate=false,
+  disabled=false, hideDate=false, ...props
 }) {
   const [randomID, setRandomID] = useState(0);
   useEffect(() => { setRandomID(parseInt(Math.random() * 1e8)); }, []);
@@ -98,7 +98,7 @@ export default function TimeTable({
   }, [enter, up, randomID]);
 
   return (
-    <Container>
+    <Container {...props}>
       <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
         <tbody>
           <tr>

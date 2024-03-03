@@ -8,6 +8,7 @@ import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
 import CircularProgress from '@mui/material/CircularProgress';
 import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
 import { useStatus } from "@/context/Status";
 
@@ -31,7 +32,7 @@ export default function EditTimeTable({
   defaultTable=null, ...props
 }) {
   const { setIndicator } = useStatus();
-  const [synced, setSynced] = useState(true);
+  const [synced, setSynced] = useState(1);
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   useEffect(() => {
     if (defaultTable)
@@ -51,7 +52,7 @@ export default function EditTimeTable({
       if (bufferTime) {
         const t = new Date().getTime();
         setCD([t, t + 1000 * bufferTime]);
-        setSynced(false);
+        setSynced(0);
       }
     }
     setSel(null);
@@ -74,8 +75,7 @@ export default function EditTimeTable({
           const now = Math.min(new Date().getTime(), e[1]);
           if (now === e[1]) {
             (async () => {
-              await alarm();
-              setSynced(true);
+              setSynced((await alarm()) ? 1 : -1);
             })();
           }
           return [now, e[1]];
@@ -99,9 +99,10 @@ export default function EditTimeTable({
         date={date}
         duration={duration}
         disabled={disabled}
-        corner={bufferTime ? (synced
-          ? <CheckIcon sx={{ fontSize: 15 }} color="primary"/>
-          : <CircularProgress size={15}/>) : null}
+        corner={bufferTime ? (
+          synced === 1 ? <CheckIcon sx={{ fontSize: 15 }} color="primary"/> :
+          synced === -1 ? <CloseIcon sx={{ fontSize: 15 }} color="error"/> :
+          <CircularProgress size={15}/>) : null}
         {...props}
       />
     </Context.Provider>
