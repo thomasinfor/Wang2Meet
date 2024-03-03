@@ -1,22 +1,22 @@
 "use client"
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { SnackbarProvider, useSnackbar } from 'notistack';
+import { SnackbarProvider, enqueueSnackbar } from 'notistack';
 
 const StatusContext = createContext({});
 
 export const StatusContextProvider = ({ children }) => {
-  const { enqueueSnackbar } = useSnackbar();
   const [indicator, setIndicator] = useState(false);
 
   return (
-    <SnackbarProvider maxSnack={3}>
+    <>
+      <SnackbarProvider maxSnack={3} autoHideDuration={3000}/>
       <StatusContext.Provider value={{
         indicator, setIndicator,
-        message: enqueueSnackbar
+        message: (...x) => enqueueSnackbar(...x)
       }}>
         {children}
       </StatusContext.Provider>
-    </SnackbarProvider>
+    </>
   );
 };
 

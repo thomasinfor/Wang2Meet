@@ -17,6 +17,7 @@ import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import { useAuth } from "@/context/Auth";
 import { interpret, pad } from "@/utils";
+import { useStatus } from "@/context/Status";
 
 const Group = styled.div`
   width: 100%;
@@ -29,6 +30,7 @@ const DateRange = styled.div`
 `;
 
 export default function Home() {
+  const { message } = useStatus();
   const router = useRouter();
   const { history, request } = useAuth();
   const [title, setTitle] = useState("");
@@ -49,6 +51,7 @@ export default function Home() {
     });
     if (!res.ok) return;
     res = await res.json();
+    message("Event created", { variant: "success" });
     router.push(`/${res.id}`);
   }
 

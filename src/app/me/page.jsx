@@ -34,9 +34,11 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { dump, parse, interpret, pad } from "@/utils";
 import { useAuth } from "@/context/Auth";
+import { useStatus } from "@/context/Status";
 
 export default function MySchedule({ params }) {
   const router = useRouter();
+  const { message } = useStatus();
   const { user, request, updateUser, logOut } = useAuth();
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
@@ -138,7 +140,13 @@ export default function MySchedule({ params }) {
           label="Log out"
           variant="contained"
           color="primary"
-          onClick={() => { if (window.confirm("Confirm to log out?")) { logOut(); router.push("/"); } }}
+          onClick={() => {
+            if (window.confirm("Confirm to log out?")) {
+              logOut();
+              message("Logged out", { variant: "success" });
+              router.push("/");
+            }
+          }}
         />
       </Linear>
     </main>

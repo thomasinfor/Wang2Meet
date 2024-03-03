@@ -30,6 +30,7 @@ import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
 import { dump, parse, interpret, pad, defaultTime, defaultDate, tableMap, cast } from "@/utils";
 import { useAuth } from "@/context/Auth";
+import { useStatus } from "@/context/Status";
 
 const Tables = styled.div`
   display: flex;
@@ -127,6 +128,7 @@ function AvailableList({ list=[], time=false, ...props }) {
 
 export default function Meet({ params }) {
   const { user, request, addHistory, delHistory } = useAuth();
+  const { message } = useStatus();
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const [table, setTable] = useState(null);
@@ -237,16 +239,22 @@ export default function Meet({ params }) {
               label="Paste my schedule"
               variant="contained"
               color="primary"
-              onClick={() => { if (window.confirm("Confirm to paste default schedule?")) pasteSchedule(); }}
+              onClick={async () => {
+                if (window.confirm("Confirm to paste default schedule?")){
+                  await pasteSchedule();
+                  message("Schedule pasted", { variant: "success" });
+                }
+              }}
             />}
           <Chip
             icon={<RestartAltIcon/>}
             label="Clear all"
             variant="contained"
             color="primary"
-            onClick={() => {
+            onClick={async () => {
               if (window.confirm("Confirm to clear schedule?")) {
-                update(tableMap(table, () => false)).then(sync);
+                await sync(await update(tableMap(table, () => false)));
+                message("Schedule cleared", { variant: "success" });
               }
             }}
           />
