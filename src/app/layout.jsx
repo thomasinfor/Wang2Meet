@@ -30,12 +30,12 @@ export default function RootLayout({ children }) {
       </head>
       <body className={inter.className} style={{ margin: 0 }}>
         <Theme>
-          <AuthContextProvider>
-            <StatusContextProvider>
+          <StatusContextProvider>
+            <AuthContextProvider>
               <Navbar/>
               {children}
-            </StatusContextProvider>
-          </AuthContextProvider>
+            </AuthContextProvider>
+          </StatusContextProvider>
         </Theme>
       </body>
     </html>

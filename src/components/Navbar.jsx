@@ -30,7 +30,7 @@ const Indicator = styled.div`
 
 export default function Navbar() {
   const { user, signIn, logOut, updateUser } = useAuth();
-  const { indicator } = useStatus();
+  const { indicator, message } = useStatus();
   const router = useRouter();
 
   return (
@@ -39,7 +39,10 @@ export default function Navbar() {
         <IconButton size="large" color="inherit" onClick={() => router.push("/")}>
           <HomeIcon />
         </IconButton>
-        <IconButton size="large" color="inherit" onClick={() => navigator.clipboard.writeText(window.location.href)}>
+        <IconButton size="large" color="inherit" onClick={() => {
+          navigator.clipboard.writeText(window.location.href);
+          message("Copied link to clipboard!", { variant: "success" });
+        }}>
           <ShareIcon />
         </IconButton>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
