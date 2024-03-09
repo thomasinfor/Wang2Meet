@@ -31,6 +31,14 @@ export const AuthContextProvider = ({ children }) => {
 
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
+    const useragent = navigator.userAgent || navigator.vendor || window.opera;
+    const isInAppBrowser = /\Wwv\W/.test(useragent);
+    if (isInAppBrowser) {
+        window.alert(
+          "Google Sign-In may not work in this in-app browser.\n" +
+          "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
+        );
+    }
     await signInWithRedirect(auth, provider);
   };
 
