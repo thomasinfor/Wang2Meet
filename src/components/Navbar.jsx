@@ -13,6 +13,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShareIcon from '@mui/icons-material/Share';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
@@ -54,8 +55,10 @@ export default function Navbar() {
           } else {
             router.push("/me");
           }
-        }}>
-          {user ? <Avatar src={user.photoURL} sx={{ width: 24, height: 24 }}/> : <AccountCircle />}
+        }} disabled={user === false}>
+          {user === null ? <AccountCircle/> :
+            user === false ? <CircularProgress color="inherit" style={{ width: 24, height: 24 }}/> :
+            <Avatar src={user.photoURL} sx={{ width: 24, height: 24 }}/>}
         </IconButton>
       </Toolbar>
       {indicator !== false && (
