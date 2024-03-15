@@ -43,6 +43,7 @@ const meetSchema = new Schema({
   } },
   duration: { type: Number, required: true, validate: { validator: e => isInt(e) && e >= 1 && e <= 35 } },
   title: { type: String, required: true, validate: { validator: e => e.length > 0 } },
+  description: String,
   tables: {
     type: [{
       user: {
@@ -88,6 +89,8 @@ const meetSchema = new Schema({
       };
       if (this.creator)
         res.creator = { name: this.creator.name, email: this.creator.email };
+      if (this.description)
+        res.description = this.description;
       return res;
     },
     async set(user, table, save=false) {

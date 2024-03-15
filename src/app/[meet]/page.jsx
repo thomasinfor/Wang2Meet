@@ -370,6 +370,13 @@ export default function Meet({ params }) {
             padding: "5px 10px",
             boxSizing: "border-box",
           }}>{config.title}</Typography>
+          {config.description && tab === "edit" &&
+            <Typography variant="p" sx={{
+              overflow: "auto",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              whiteSpace: "pre-line",
+            }}>{config.description}</Typography>}
           {content[tab]}
         </Linear>}
     </main>

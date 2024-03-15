@@ -34,6 +34,7 @@ export default function Home() {
   const router = useRouter();
   const { history, request } = useAuth();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [start, setStart] = useState(new Date().toLocaleDateString('en-CA'));
   const [end, setEnd] = useState(new Date().toLocaleDateString('en-CA'));
   const [time, setTime] = useState([9, 22]);
@@ -46,7 +47,8 @@ export default function Home() {
         time: time.map(e => e * 4),
         date: start.split('-').map(e => parseInt(e)),
         duration,
-        title
+        title,
+        description: description || undefined
       }
     });
     if (!res.ok) return;
@@ -76,6 +78,16 @@ export default function Home() {
             value={title}
             error={!title}
             onChange={e => setTitle(e.target.value)}
+          />
+          <TextField
+            multiline
+            size="small"
+            autoComplete="off"
+            fullWidth
+            label="Description"
+            variant="outlined"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
           />
           <DateRange>
             <TextField
