@@ -171,9 +171,13 @@ export default function Meet({ params }) {
       return false;
     } else {
       res = await res.json();
-      for (let i in res.collection)
-          res.collection[i].table = i === user.email ? (t || table) : parse(res.collection[i].table);
-      setConfig(res);
+      setConfig(cfg => {
+        for (let i in res.collection)
+          res.collection[i].table = i === user.email
+            ? cfg.collection[user.email].table
+            : parse(res.collection[i].table);
+        return res;
+      });
       return true;
     }
   }, [user, request, table]);

@@ -74,9 +74,10 @@ export default function MySchedule({ params }) {
       return false;
     } else {
       res = await res.json();
-      if (res.table)
-        res.table = parse(res.table);
-      setInfo(res);
+      setInfo(info => {
+        res.table = info.table;
+        return res;
+      });
       return true;
     }
   }, [request, table, setInfo]);
