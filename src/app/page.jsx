@@ -12,7 +12,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
 import LaunchIcon from '@mui/icons-material/Launch';
+import LinkIcon from '@mui/icons-material/Link';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import { useAuth } from "@/context/Auth";
@@ -164,6 +166,11 @@ export default function Home() {
             );
           })}
         </List>
+        <Link href="https://links.wang.works/w2m-feedback" target="_blank">
+          <Button startIcon={<LinkIcon/>} sx={{ textTransform: 'none' }} size="small">
+            Report an issue
+          </Button>
+        </Link>
       </Linear>
     </main>
   );
