@@ -1,6 +1,6 @@
 "use client"
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, getAuth, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, getAuth, signInWithPopup, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -39,7 +39,8 @@ export const AuthContextProvider = ({ children }) => {
           "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
         );
     }
-    await signInWithRedirect(auth, provider);
+    await signInWithPopup(auth, provider);
+    window.location.reload();
   };
 
   const logOut = async () => {
