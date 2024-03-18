@@ -1,12 +1,13 @@
 "use client"
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, getAuth, signInWithPopup, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useStatus } from "@/context/Status";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
-  authDomain: "when2meet-11dfe.firebaseapp.com",
+  authDomain: process.env.NODE_ENV === 'development' ? "when2meet-11dfe.firebaseapp.com" : "w2m.wang.works",
   projectId: "when2meet-11dfe",
   storageBucket: "when2meet-11dfe.appspot.com",
   messagingSenderId: "344365803313",
@@ -20,6 +21,7 @@ const AuthContext = createContext({ user: null });
 function STORAGE_KEY(x) { return "Wang2Meet_" + x; }
 
 export const AuthContextProvider = ({ children }) => {
+  const { message } = useStatus();
   const [user, setUser] = useState(false);
 
   useEffect(() => {
@@ -31,16 +33,29 @@ export const AuthContextProvider = ({ children }) => {
 
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
-    const useragent = navigator.userAgent || navigator.vendor || window.opera;
-    const isInAppBrowser = /\Wwv\W/.test(useragent);
-    if (isInAppBrowser) {
-        window.alert(
-          "Google Sign-In may not work in this in-app browser.\n" +
-          "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
-        );
+    if (window.confirm(`
+Please **DON'T** sign in with in-app browser like Instagram, Facebook or LINE browser. Google Oauth blocks access from insecure browsers.
+On mobile devices, use Chrome or Safari instead.
+
+請**勿**使用應用程式內建瀏覽器登入，如 IG、FB 或 LINE。Google Oauth 拒絕來自不安全瀏覽器的連線。
+若為行動裝置，請在 Chrome 或 Safari 上登入。
+
+Login link: https://w2m.wang.works/sign-in
+    `.trim())) {
+      // const useragent = navigator.userAgent || navigator.vendor || window.opera;
+      // const isInAppBrowser = /\Wwv\W/.test(useragent);
+      // if (isInAppBrowser) {
+      //     window.alert(
+      //       "Google Sign-In may not work in this in-app browser.\n" +
+      //       "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
+      //     );
+      // }
+      await signInWithRedirect(auth, provider);
+      window.location.reload();
+    } else {
+      navigator.clipboard.writeText(window.location.origin + "/sign-in");
+      message("Sign-in link copied", { variant: "success" });
     }
-    await signInWithPopup(auth, provider);
-    window.location.reload();
   };
 
   const logOut = async () => {

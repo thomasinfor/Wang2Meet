@@ -127,7 +127,7 @@ function AvailableList({ list=[], time=false, ...props }) {
 }
 
 export default function Meet({ params }) {
-  const { user, request, addHistory, delHistory } = useAuth();
+  const { user, request, addHistory, delHistory, signIn } = useAuth();
   const { message } = useStatus();
   const router = useRouter();
   const [config, setConfig] = useState(null);
@@ -238,7 +238,7 @@ export default function Meet({ params }) {
   const content = !config ? {} : {
     edit: (
       <>
-        {Boolean(user) || <Alert severity="info">Sign in to continue</Alert>}
+        {Boolean(user) || <Alert severity="info" onClick={signIn} sx={{ cursor: 'pointer' }}>Sign in to continue</Alert>}
         <Stack direction="row" spacing={2}>
           {user &&
             <Chip
