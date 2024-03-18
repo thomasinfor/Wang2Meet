@@ -18,3 +18,5 @@ New features
 
 ## Tech stack
 Next + Express + MongoDB
+
+## How to use?

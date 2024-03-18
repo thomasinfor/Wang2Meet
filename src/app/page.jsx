@@ -14,7 +14,10 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import LaunchIcon from '@mui/icons-material/Launch';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import LinkIcon from '@mui/icons-material/Link';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import HelpIcon from '@mui/icons-material/Help';
 import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import { useAuth } from "@/context/Auth";
@@ -166,11 +169,28 @@ export default function Home() {
             );
           })}
         </List>
-        <Link href="https://links.wang.works/w2m-feedback" target="_blank">
-          <Button startIcon={<LinkIcon/>} sx={{ textTransform: 'none' }} size="small">
-            Report an issue
-          </Button>
-        </Link>
+        <Stack
+          direction="row"
+          alignItems="center"
+          divider={<Divider orientation="vertical" flexItem/>}
+          spacing={2}
+        >
+          <Link href="https://links.wang.works/w2m-guideline" target="_blank">
+            <IconButton color="primary" size="small">
+              <HelpIcon/>
+            </IconButton>
+          </Link>
+          <Link href="https://github.com/thomasinfor/Wang2Meet/" target="_blank">
+            <IconButton color="primary" size="small">
+              <GitHubIcon/>
+            </IconButton>
+          </Link>
+          <Link href="https://links.wang.works/w2m-feedback" target="_blank">
+            <Button startIcon={<ReportProblemIcon/>} sx={{ textTransform: 'none' }} size="small">
+              Report an issue
+            </Button>
+          </Link>
+        </Stack>
       </Linear>
     </main>
   );

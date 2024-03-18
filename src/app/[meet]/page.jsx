@@ -172,11 +172,13 @@ export default function Meet({ params }) {
     } else {
       res = await res.json();
       setConfig(cfg => {
+        const new_col = {};
         for (let i in res.collection)
-          res.collection[i].table = i === user.email
-            ? cfg.collection[user.email].table
-            : parse(res.collection[i].table);
-        return res;
+          new_col[i] = {
+            ...res.collection[i],
+            table: i === user.email ? cfg.collection[user.email].table : parse(res.collection[i].table)
+          };
+        return { ...res, collection: new_col };
       });
       return true;
     }
@@ -192,8 +194,9 @@ export default function Meet({ params }) {
           res = parse(res.table);
           const t = cast(res, defaultDate, defaultTime, config.date, config.time, config.duration);
           await sync(await update(tableMap(table, (e, i, j) => e || t[i][j])));
+          message("Schedule pasted", { variant: "success" });
         } else {
-          window.alert("Default table not set");
+          message("Default schedule not set", { variant: "error" });
         }
       } else {
         window.alert("Operation failed");
@@ -244,9 +247,8 @@ export default function Meet({ params }) {
               variant="contained"
               color="primary"
               onClick={async () => {
-                if (window.confirm("Confirm to paste default schedule?")){
+                if (window.confirm("Confirm to paste default schedule?")) {
                   await pasteSchedule();
-                  message("Schedule pasted", { variant: "success" });
                 }
               }}
             />}
