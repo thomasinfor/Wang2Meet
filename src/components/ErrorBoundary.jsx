@@ -1,4 +1,5 @@
-import { Component, useEffect } from 'react';
+import React from "react";
+import { Component } from 'react';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
@@ -26,6 +27,7 @@ class ErrorBoundary extends Component {
   }
   static getDerivedStateFromError(error) {
     // Update state to indicate an error has occurred
+    console.error(error);
     return { hasError: true };
   }
 
@@ -34,7 +36,7 @@ class ErrorBoundary extends Component {
     console.log("ErrorBoundary", error, errorInfo);
     const x = new URLSearchParams;
     x.append("entry.549361065", "ERROR LOG:\n\n" + error.stack.toString().slice(0, 1500));
-    this.state.reportLink = `https://links.wang.works/w2m-feedback?${x}`;
+    this.setState({ reportLink: `https://links.wang.works/w2m-feedback?${x}` });
 
     if (process.env.NODE_ENV === 'development')
       throw error;

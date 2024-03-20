@@ -1,12 +1,8 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from "react";
-import Image from "next/image";
+import React from "react";
+import { useState, useEffect, useMemo } from "react";
 import styled from "@emotion/styled";
-import { useTheme } from '@mui/material/styles';
-import CircularProgress from '@mui/material/CircularProgress';
-import Linear from "@/components/Linear";
-import CheckIcon from '@mui/icons-material/Check';
-import { pad, Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
+import { Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Table = styled.table`
   border-spacing: 0;
@@ -72,7 +68,9 @@ export default function TimeTable({
         if (idx[2] === randomID && idx.length == 3) {
           enter(idx[0], idx[1]);
         }
-      } catch(e) {}
+      } catch(e) {
+        // empty
+      }
     }
     function touchEnd(e) {
       const theTouch = e.type === "touchend" ? e.changedTouches[0] :
@@ -84,7 +82,9 @@ export default function TimeTable({
         if (idx[2] === randomID && idx.length == 3) {
           return up(idx[0], idx[1]);
         }
-      } catch(e) {}
+      } catch(e) {
+        // empty
+      }
       up();
     }
     document.addEventListener("touchmove", touchMove);

@@ -1,11 +1,12 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React from "react";
+import { useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/Auth";
 import CircularProgress from '@mui/material/CircularProgress';
 import Linear from "@/components/Linear";
 
-export default function SignInPage({ params }) {
+export default function SignInPage() {
   const router = useRouter();
   const { user, signIn } = useAuth();
 

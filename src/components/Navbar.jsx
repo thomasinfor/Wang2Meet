@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import React from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import Typography from '@mui/material/Typography';
@@ -11,7 +11,6 @@ import Avatar from '@mui/material/Avatar';
 import PermIdentityIcon from '@mui/icons-material/PermIdentity';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ShareIcon from '@mui/icons-material/Share';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAuth } from "@/context/Auth";
@@ -30,7 +29,7 @@ const Indicator = styled.div`
 `;
 
 export default function Navbar() {
-  const { user, signIn, logOut, updateUser } = useAuth();
+  const { user, signIn } = useAuth();
   const { indicator, message } = useStatus();
   const router = useRouter();
 

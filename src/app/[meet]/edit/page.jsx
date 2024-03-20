@@ -1,35 +1,17 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useRouter } from 'next/navigation';
+import React from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import styled from "@emotion/styled";
-import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Paper from '@mui/material/Paper';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Stack from '@mui/material/Stack';
-import Divider from '@mui/material/Divider';
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
-import { dump, parse, interpret, pad, defaultTime, defaultDate, tableMap, cast } from "@/utils";
+import { dump, parse, interpret, defaultTime, defaultDate, tableMap, cast } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 import { useConfig } from "../layout";
@@ -64,42 +46,15 @@ const SplitViewContainer = styled(Container)`
     }
   }
 `;
-const AvailableListContainer = styled(Linear)`
-  box-sizing: border-box;
-  justify-content: flex-start;
-`;
 const TableWrapper = styled.div`
   max-width: 100%;
   max-height: 95vh;
 `;
-const SwitchButton = styled.div`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  opacity: 0.8;
-  z-index: 10;
-`;
-const SmallMenuItem = styled(MenuItem)(({ theme }) => ({
-  minHeight: 0,
-  maxWidth: '100%',
-  alignItems: 'baseline',
-  "& > span": {
-    color: '#888',
-    fontSize: 'x-small',
-  },
-}));
-const Indicator = styled(TableCell)(({ theme }) => ({
-  width: '20px',
-  "& > div" : {
-    display: 'flex'
-  }
-}));
 
 export default function MeetEdit({ params }) {
   const { config, setConfig } = useConfig();
-  const { user, request, addHistory, delHistory, signIn } = useAuth();
+  const { user, request, signIn } = useAuth();
   const { message } = useStatus();
-  const router = useRouter();
   const [table, setTable] = useState(null);
   const [focus, setFocus] = useState(null);
 
@@ -109,7 +64,7 @@ export default function MeetEdit({ params }) {
       setConfig(c => ({ ...c, collection: { ...c.collection, [user.email]: { ...c.collection[user.email], table: tbl } } }));
     }
     return tbl;
-  }, [setTable, user]);
+  }, [setTable, user, setConfig]);
 
   const sync = useCallback(async (t) => {
     const time = dump(t || table);
@@ -131,7 +86,7 @@ export default function MeetEdit({ params }) {
       });
       return true;
     }
-  }, [user, request, table]);
+  }, [user, request, table, params.meet, setConfig]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;
@@ -154,16 +109,14 @@ export default function MeetEdit({ params }) {
       console.error(e);
       window.alert("Operation failed");
     }
-  }, [user, table, setTable, config, update, request, sync]);
+  }, [user, table, config, update, request, sync, message]);
 
-  const [tab, setTab] = useState("edit");
-  const [viewGroup, setViewGroup] = useState(true);
-  const [viewFocus, setViewFocus] = useState([0, 0]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
   })), [config]);
 
-  const refs = [useRef(null), useRef(null)];
+  const refs0 = useRef(null), refs1 = useRef(null);
+  const refs = [refs0, refs1];
   function syncScroll(i) {
     return {
       ref: refs[i],
@@ -177,12 +130,12 @@ export default function MeetEdit({ params }) {
   }
   useEffect(() => {
     if (!focus) {
-      if (refs[0].current && refs[1].current) {
-        refs[0].current.scrollTop = refs[1].current.scrollTop;
-        refs[0].current.scrollLeft = refs[1].current.scrollLeft;
+      if (refs0.current && refs1.current) {
+        refs0.current.scrollTop = refs1.current.scrollTop;
+        refs0.current.scrollLeft = refs1.current.scrollLeft;
       }
     }
-  }, [focus]);
+  }, [focus, refs0, refs1]);
 
   return (
     <>

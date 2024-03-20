@@ -1,4 +1,5 @@
 "use client"
+import React from "react";
 import styled from "@emotion/styled";
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -11,21 +12,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import Linear from "@/components/Linear";
 
-const Tables = styled.div`
-  display: flex;
-  justify-content: space-evenly;
-  width: 100vw;
-  gap: 20px;
-  flex-wrap: wrap;
-  overflow: auto;
-  padding: 0 10px;
-  box-sizing: border-box;
-`;
 const AvailableListContainer = styled(Linear)`
   box-sizing: border-box;
   justify-content: flex-start;
 `;
-const Indicator = styled(TableCell)(({ theme }) => ({
+const Indicator = styled(TableCell)(() => ({
   width: '20px',
   "& > div" : {
     display: 'flex'
@@ -47,7 +38,7 @@ export default function AvailableList({ list=[], time=false, ...props }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {list.map(({ name, email, available}, i) => (
+            {list.map(({ name, email, available}) => (
               <TableRow key={email}>
                 <Indicator align="center">
                   {available && <div><CheckIcon color="success" fontSize="small"/></div>}

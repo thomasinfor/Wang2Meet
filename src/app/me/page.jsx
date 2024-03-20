@@ -1,42 +1,23 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from 'next/navigation';
-import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
-import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
-import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Paper from '@mui/material/Paper';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
-import ViewTimeTable from "@/components/ViewTimeTable";
 import Accordion from '@mui/material/Accordion';
-import AccordionActions from '@mui/material/AccordionActions';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { dump, parse, pad } from "@/utils";
+import { dump, parse } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
-export default function MySchedule({ params }) {
+export default function MySchedule() {
   const router = useRouter();
   const { message } = useStatus();
   const { user, request, updateUser, logOut } = useAuth();
@@ -60,7 +41,7 @@ export default function MySchedule({ params }) {
     })();
   }, [user, setInfo, request]);
 
-  const update = useCallback(async (tbl, is_new=true) => {
+  const update = useCallback(async (tbl) => {
     setTable(tbl);
   }, [setTable]);
 

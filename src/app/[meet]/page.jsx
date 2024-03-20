@@ -1,4 +1,5 @@
 "use client"
+import React from "react";
 import { useEffect } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -7,7 +8,7 @@ export default function MeetDefault() {
   const pathname = usePathname();
   useEffect(() => {
     router.replace(`${pathname}/edit`);
-  }, []);
-  return "";
+  }, [pathname, router]);
+  return <></>;
 }
 

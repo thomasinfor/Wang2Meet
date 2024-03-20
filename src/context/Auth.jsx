@@ -1,6 +1,7 @@
 "use client"
+import React from "react";
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, getAuth, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useStatus } from "@/context/Status";

@@ -1,16 +1,12 @@
 "use client"
+import React from "react";
 import { useState, useEffect, useMemo, useCallback, useContext, createContext } from "react";
-import Image from "next/image";
-import styled from "@emotion/styled";
-import { useTheme } from '@mui/material/styles';
-import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
 import CircularProgress from '@mui/material/CircularProgress';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
-import { useStatus } from "@/context/Status";
+import { inRange, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Context = createContext(false);
 
@@ -31,7 +27,7 @@ export default function EditTimeTable({
   bufferTime=false, alarm=()=>{},
   defaultTable=null, ...props
 }) {
-  const { setIndicator } = useStatus();
+  // const { setIndicator } = useStatus();
   const [synced, setSynced] = useState(1);
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
   useEffect(() => {
@@ -39,7 +35,7 @@ export default function EditTimeTable({
       setValue(defaultTable, false);
     else
       setValue(EMPTY_TABLE, false);
-  }, [defaultTable]);
+  }, [defaultTable, EMPTY_TABLE, setValue]);
   const value = _value || EMPTY_TABLE;
 
   const [sel, setSel] = useState(null);
@@ -56,7 +52,7 @@ export default function EditTimeTable({
       }
     }
     setSel(null);
-  }, [sel, setSel, newTable, bufferTime]);
+  }, [sel, setSel, newTable, bufferTime, EMPTY_TABLE, setValue]);
   const down = useCallback((i, j) => {
     // console.log("down", i, j);
     setSel([[i, j], [i, j]]);
@@ -66,7 +62,7 @@ export default function EditTimeTable({
     setSel(sel => sel && [sel[0], [i, j]]);
   }, [setSel]);
 
-  const [CD, setCD] = useState(null); // [now, ddl]
+  const [, setCD] = useState(null); // [now, ddl]
   useEffect(() => {
     if (bufferTime) {
       const id = setInterval(() => {

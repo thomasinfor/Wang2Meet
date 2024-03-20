@@ -1,3 +1,4 @@
+import React from "react";
 import { Roboto_Mono  } from "next/font/google";
 import Script from 'next/script';
 import "./global.css";
@@ -19,7 +20,7 @@ export default function RootLayout({ children }) {
       <head>
         {/*<!-- Google tag (gtag.js) -->*/}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-0P4MSW3QPS"></Script>
-        <Script>{`
+        <Script id="google-analytics">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());

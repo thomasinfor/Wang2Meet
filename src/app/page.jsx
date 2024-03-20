@@ -1,5 +1,6 @@
 "use client"
-import { Fragment, useState, useEffect, useMemo, useCallback } from "react";
+import React from "react";
+import { Fragment, useState, useMemo } from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
@@ -15,13 +16,11 @@ import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import LaunchIcon from '@mui/icons-material/Launch';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import LinkIcon from '@mui/icons-material/Link';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
 import Linear from "@/components/Linear";
-import TimeTable from "@/components/TimeTable";
 import { useAuth } from "@/context/Auth";
-import { interpret, pad } from "@/utils";
+import { interpret } from "@/utils";
 import { useStatus } from "@/context/Status";
 
 const Group = styled.div`

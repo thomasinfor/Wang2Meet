@@ -1,12 +1,9 @@
 "use client"
+import React from "react";
 import { useState, useEffect, useMemo, useCallback, useContext, createContext } from "react";
-import Image from "next/image";
-import styled from "@emotion/styled";
-import { useTheme } from '@mui/material/styles';
-import Linear from "@/components/Linear";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
-import { inRange, pad, Time, dayOfWeek, colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
+import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const Context = createContext(false);
 
@@ -47,9 +44,9 @@ export default function ViewTimeTable({
       setFocus(null);
   }, [setFocus, keepFocus]);
 
-  const totalPeople = useMemo(() => Object.keys(value).length, [value]);
+  // const totalPeople = useMemo(() => Object.keys(value).length, [value]);
   const available = useMemo(() => tableMap(EMPTY_TABLE, (_, i, j) =>
-      Object.entries(value).filter(([k, v]) => v.table[i][j]).map(e => e[0])), [value, EMPTY_TABLE]);
+      Object.values(value).filter(v => v.table[i][j]).map(e => e[0])), [value, EMPTY_TABLE]);
   const maxPeople = useMemo(() => available.flat().reduce((a, c) => Math.max(a, c.length), 0), [available]);
   const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length), [available, maxPeople]);
 
