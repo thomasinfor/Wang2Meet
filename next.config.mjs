@@ -17,7 +17,10 @@ const nextConfig = withPWA({
   },
   eslint: {
     ignoreDuringBuilds: true,
-  }
+  },
+  images: {
+    domains: ['ssl.gstatic.com'],
+  },
 });
 
 export default nextConfig;

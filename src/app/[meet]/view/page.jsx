@@ -1,6 +1,7 @@
 "use client"
 import React from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useSearchParams } from 'next/navigation';
 import styled from "@emotion/styled";
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
@@ -9,7 +10,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
-import { interpret } from "@/utils";
+import { interpret, slotBefore } from "@/utils";
 import { useConfig } from "../layout";
 
 const Tables = styled.div`
@@ -49,6 +50,17 @@ const SmallMenuItem = styled(MenuItem)(() => ({
 
 export default function MeetView() {
   const { config } = useConfig();
+  const SP = useSearchParams();
+  const highlight = useMemo(() => {
+    let lst = (SP.get("range") || "").split(",").map(e => parseInt(e));
+    if (lst.length !== 4 || lst.some(e => isNaN(e) || e < 0 || e >= 96))
+      return false;
+    const res = [[lst[0], lst[1]], [lst[2], lst[3]]];
+    if (!slotBefore(...res))
+      return false;
+    return res;
+  }, [SP]);
+
   const [viewGroup, setViewGroup] = useState(true);
   const [viewFocus, setViewFocus] = useState([0, 0]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
@@ -100,6 +112,7 @@ export default function MeetView() {
               duration={config.duration}
               focus={viewFocus}
               setFocus={setViewFocus}
+              highlightRange={highlight}
             />
           </TableWrapper>
         </Container>

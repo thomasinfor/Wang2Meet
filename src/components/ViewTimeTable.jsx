@@ -3,19 +3,21 @@ import React from "react";
 import { useState, useEffect, useMemo, useCallback, useContext, createContext } from "react";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
-import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
+import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration, slotBefore } from "@/utils";
 
 const Context = createContext(false);
 
 function Grid({ ...p }) {
   // const theme = useTheme();
-  const { focus, level, maxPeople } = useContext(Context);
+  const { focus, level, maxPeople, highlightRange: range } = useContext(Context);
   const focused = focus && p.i == focus[0] && p.j == focus[1];
   const style = { fontSize: '4px' };
   if (maxPeople !== 0)
     Object.assign(style, { background: colorScale('#339900', level[p.i][p.j] / maxPeople) });
   if (focused)
     Object.assign(style, { border: '1px solid red' });
+  if (range && slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1]))
+    Object.assign(style, { background: '#FFFF00' });
   return (
     <BaseGrid {...p} style={style}>
       <div style={{ transform: 'scale(2.5)' }}>
@@ -28,6 +30,7 @@ function Grid({ ...p }) {
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
+  highlightRange=false,
   keepFocus=false, ...props
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
@@ -51,7 +54,7 @@ export default function ViewTimeTable({
   const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length), [available, maxPeople]);
 
   return (
-    <Context.Provider value={{ focus, available, level, maxPeople }}>
+    <Context.Provider value={{ focus, available, level, maxPeople, highlightRange }}>
       <TimeTable
         enter={enter}
         down={enter}

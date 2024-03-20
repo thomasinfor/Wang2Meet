@@ -33,7 +33,7 @@ const GridElement = styled.td`
 `;
 
 export default function BaseGrid({
-  i, j, time, down=()=>{}, enter=()=>{}, leave=()=>{}, id,
+  i, j, time, down=()=>{}, enter=()=>{}, leave=()=>{}, click=()=>{}, id,
   className="", children, ...props
 }) {
   const timeObj = useMemo(() => new Time(time), [time]);
@@ -43,6 +43,7 @@ export default function BaseGrid({
       onPointerDown={() => down(i, j)}
       onMouseEnter={() => enter(i, j)}
       onMouseLeave={() => leave(i, j)}
+      onClick={() => click(i, j)}
       className={`section${timeObj.section} ${className}`}
       {...props}
     >{children}</GridElement>

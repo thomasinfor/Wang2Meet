@@ -46,7 +46,7 @@ const Container = styled.div`
 `;
 
 export default function TimeTable({
-  up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{},
+  up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{}, click=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   Grid, corner=null,
   disabled=false, hideDate=false, ...props
@@ -118,7 +118,7 @@ export default function TimeTable({
                 <Grid
                   key={j}
                   id={`${i}-${j}-${randomID}`}
-                  {...{ i, j, time, date, down, enter, leave }}
+                  {...{ i, j, time, date, down, enter, leave, click }}
                 />)}
             </tr>)}
           <tr>

@@ -16,7 +16,7 @@ import { useStatus } from "@/context/Status";
 const modes = [
   ["edit", "Editing", EditIcon],
   ["view", "Viewing", VisibilityIcon],
-  // ["control", "Control", SettingsIcon],
+  ["control", "Control", SettingsIcon],
 ];
 
 const Context = createContext(false);
@@ -57,7 +57,11 @@ export default function Meet({ params, children }) {
     if (!current) return <InsertEmoticonIcon/>;
     else {
       const Icon = current[2];
-      return <Icon/>;
+      return <Icon onClick={() => {
+        const idx = modes.map(e => e[0]).indexOf(tab);
+        if (idx === -1) return;
+        router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
+      }}/>;
     }
   })();
   const [FABopen, setFABopen] = useState(false);
@@ -75,11 +79,6 @@ export default function Meet({ params, children }) {
               onClose={() => setFABopen(false)}
               onOpen={() => setFABopen(true)}
               open={FABopen}
-              onClick={() => {
-                const idx = modes.map(e => e[0]).indexOf(tab);
-                if (idx === -1) return;
-                router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
-              }}
             >
               {modes.filter(e => e[0] !== tab).map(([id, label, Icon]) => (
                 <SpeedDialAction
