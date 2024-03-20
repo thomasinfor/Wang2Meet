@@ -57,7 +57,8 @@ export default function Meet({ params, children }) {
     if (!current) return <InsertEmoticonIcon/>;
     else {
       const Icon = current[2];
-      return <Icon onClick={() => {
+      return <Icon onPointerDown={evt => {
+        if (evt.pointerType !== "mouse") return;
         const idx = modes.map(e => e[0]).indexOf(tab);
         if (idx === -1) return;
         router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
