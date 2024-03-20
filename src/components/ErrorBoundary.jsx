@@ -35,6 +35,9 @@ class ErrorBoundary extends Component {
     const x = new URLSearchParams;
     x.append("entry.549361065", "ERROR LOG:\n\n" + error.stack.toString().slice(0, 1500));
     this.state.reportLink = `https://links.wang.works/w2m-feedback?${x}`;
+
+    if (process.env.NODE_ENV === 'development')
+      throw error;
   }
 
   render() {

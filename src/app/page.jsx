@@ -152,7 +152,7 @@ export default function Home() {
           </ListItem>
           {history.map(({ id, title, date, time, duration }) => {
             const t1 = interpret(date, time[0]);
-            const t2 = interpret(date, time[1], [0, duration]);
+            const t2 = interpret(date, time[1], [0, duration-1]);
             return (
               <Fragment key={id}>
                 <Divider component="li" />
@@ -162,7 +162,7 @@ export default function Home() {
                   </IconButton>
                 } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
                   <ListItemText sx={{ my: 0.5 }} primary={title} secondary={
-                    `[${t1[0]}/${t1[1]}/${t1[2]} ${t1[3]} ~ ${t2[0]}/${t2[1]}/${t2[2]} ${t2[3]}] [${pad(t1[4], 2)}:${pad(t1[5], 2)} ~ ${pad(t2[4], 2)}:${pad(t2[5], 2)}]`
+                    `[${t1.year}/${t1.month}/${t1.date} ${t1.dow} ~ ${t2.year}/${t2.month}/${t2.date} ${t2.dow}] [${t1.hourPad}:${t1.minutePad} ~ ${t2.hourPad}:${t2.minutePad}]`
                   }/>
                 </ListItem>
               </Fragment>

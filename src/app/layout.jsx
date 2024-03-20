@@ -1,8 +1,8 @@
 import { Roboto_Mono  } from "next/font/google";
 import Script from 'next/script';
 import "./global.css";
-import Theme from '@/components/Theme';
 import Navbar from '@/components/Navbar';
+import Theme from '@/context/Theme';
 import { AuthContextProvider } from "@/context/Auth";
 import { StatusContextProvider } from "@/context/Status";
 

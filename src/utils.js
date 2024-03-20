@@ -1,5 +1,5 @@
 export function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
-export function pad(n, digit){ return `0000000000${n}`.slice(-digit); }
+export function pad(n, digit){ const res = `${n}`; return "0".repeat(Math.max(0, digit-res.length)) + res; }
 export class Time{
   constructor(i) {
     this.hour = parseInt(i / 4);
@@ -16,10 +16,27 @@ export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.
   e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
 ).join(''); }
 export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e, i, j))); }
-export function interpret(date, time, [i, j]=[0, 0]) {
-  date = new Date(new Date(date).getTime() + 86400000*j);
-  time = (time + i) * 15;
-  return [date.getFullYear(), date.getMonth()+1, date.getDate(), dayOfWeek[date.getDay()], parseInt(time / 60), time % 60];
+class InterpretedTime {
+  constructor(date, time, [i, j]=[0, 0]) {
+    this.dateObj = new Date(new Date(date).getTime() + 86400000*j);
+    this.time = (time + i) * 15;
+    this.i = i; this.j = j;
+    this.year = this.dateObj.getFullYear();
+    this.month = this.dateObj.getMonth()+1;
+    this.date = this.dateObj.getDate();
+    this.day = this.dateObj.getDay();
+    this.dow = dayOfWeek[this.day];
+    this.hour = parseInt(this.time / 60);
+    this.minute = this.time % 60;
+  }
+  get yearPad() { return pad(this.year, 4); }
+  get monthPad() { return pad(this.month, 2); }
+  get datePad() { return pad(this.date, 2); }
+  get hourPad() { return pad(this.hour, 2); }
+  get minutePad() { return pad(this.minute, 2); }
+}
+export function interpret(...args) {
+  return new InterpretedTime(...args);
 }
 export function cast(table, d1, t1, d2, t2, duration) {
   if (table[0].length === 7 && new Date(d1).getDay() === 0 && t1[0] === defaultTime[0] && t1[1] === defaultTime[1]) {
@@ -28,4 +45,27 @@ export function cast(table, d1, t1, d2, t2, duration) {
     table = table.map(row => new Array(duration).fill(day0).map((e, i) => row[(e+i) % 7]));
     return table;
   }
+}
+export function getCalendarLink(meet, start, end) {
+  // https://github.com/InteractionDesignFoundation/add-event-to-calendar-docs/blob/main/services/google.md
+  const params = new URLSearchParams;
+  params.append("action", "TEMPLATE");
+  params.append("text", meet.title);
+  params.append("dates", `${
+    start.yearPad}${start.monthPad}${start.datePad
+  }T${
+    start.hourPad}${start.minutePad
+  }00/${
+    end.yearPad}${end.monthPad}${end.datePad
+  }T${
+    end.hourPad}${end.minutePad
+  }00`);
+  // params.append("ctz", "Asia/Taipei");
+  const link = `${window.location.origin}/${meet.id}/view?range=${start.i},${start.j},${end.i},${end.j}`;
+  params.append("details", `<h3>Wang2Meet</h3><a href="${link}">${link}</a>${
+    !meet.description ? "" :
+    "<h3>Description</h3>" + meet.description.slice(0, 1500)
+  }`);
+  params.append("add", Object.keys(meet.collection).join(","));
+  return "https://www.google.com/calendar/render?" + params;
 }
