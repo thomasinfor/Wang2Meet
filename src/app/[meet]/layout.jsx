@@ -75,6 +75,11 @@ export default function Meet({ params, children }) {
               onClose={() => setFABopen(false)}
               onOpen={() => setFABopen(true)}
               open={FABopen}
+              onClick={() => {
+                const idx = modes.map(e => e[0]).indexOf(tab);
+                if (idx === -1) return;
+                router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
+              }}
             >
               {modes.filter(e => e[0] !== tab).map(([id, label, Icon]) => (
                 <SpeedDialAction
