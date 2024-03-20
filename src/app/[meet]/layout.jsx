@@ -2,23 +2,22 @@
 import React from "react";
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter, usePathname } from 'next/navigation'
-import styled from "@emotion/styled";
-import Chip from '@mui/material/Chip';
+import SpeedDial from '@mui/material/SpeedDial';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
+import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Linear from "@/components/Linear";
 import { parse } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
-const SwitchButton = styled.div`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  opacity: 0.8;
-  z-index: 10;
-`;
+const modes = [
+  ["edit", "Editing", EditIcon],
+  ["view", "Viewing", VisibilityIcon],
+  // ["control", "Control", SettingsIcon],
+];
 
 const Context = createContext(false);
 export function useConfig() { return useContext(Context); }
@@ -53,28 +52,44 @@ export default function Meet({ params, children }) {
 
   const pathname = usePathname();
   const tab = pathname.split('/')[2];
+  const FABicon = (() => {
+    const current = modes.filter(e => e[0] === tab).pop();
+    if (!current) return <InsertEmoticonIcon/>;
+    else {
+      const Icon = current[2];
+      return <Icon/>;
+    }
+  })();
+  const [FABopen, setFABopen] = useState(false);
 
   return (
     <Context.Provider value={{ config, setConfig }}>
       <main>
         {config &&
           <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0' }}>
-            <SwitchButton>
-              {[
-                ["edit", "Editing", EditIcon],
-                ["view", "Viewing", VisibilityIcon],
-                ["control", "Control", SettingsIcon]
-              ].map(([id, label, Icon], i, arr) =>
-                <Chip
-                  sx={{ display: id !== tab ? 'none' : undefined, fontWeight: 'bold' }}
+            <SpeedDial
+              direction="down"
+              ariaLabel="mode-switch"
+              sx={{ position: 'absolute', top: 10, left: 10, opacity: 0.8, transform: "scale(0.8)", transformOrigin: "top left" }}
+              icon={FABicon}
+              onClose={() => setFABopen(false)}
+              onOpen={() => setFABopen(true)}
+              open={FABopen}
+            >
+              {modes.filter(e => e[0] !== tab).map(([id, label, Icon]) => (
+                <SpeedDialAction
                   key={id}
                   icon={<Icon/>}
-                  label={label}
-                  variant="contained"
-                  color="primary"
-                  onClick={() => router.push(`/${config.id}/${arr[(i+1)%arr.length][0]}`)}
-                />)}
-            </SwitchButton>
+                  tooltipOpen
+                  tooltipPlacement="right"
+                  tooltipTitle={label}
+                  onClick={() => {
+                    router.push(`/${config.id}/${id}`);
+                    setFABopen(false);
+                  }}
+                />
+              ))}
+            </SpeedDial>
             {children}
           </Linear>}
       </main>
