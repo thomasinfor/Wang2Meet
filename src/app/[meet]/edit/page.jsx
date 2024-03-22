@@ -168,7 +168,7 @@ export default function MeetEdit({ params }) {
           />}
         <Chip
           icon={<RestartAltIcon/>}
-          label="Clear all"
+          label="Clear"
           variant="contained"
           color="primary"
           onClick={async () => {

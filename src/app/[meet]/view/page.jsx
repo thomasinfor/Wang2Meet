@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useSearchParams } from 'next/navigation';
 import styled from "@emotion/styled";
 import Typography from '@mui/material/Typography';
@@ -8,6 +8,9 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
 import { interpret, slotBefore } from "@/utils";
@@ -60,21 +63,49 @@ export default function MeetView() {
       return false;
     return res;
   }, [SP]);
+  const [showHightlight, setShowHightlight] = useState(true);
 
   const [viewGroup, setViewGroup] = useState(true);
   const [viewFocus, setViewFocus] = useState([0, 0]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
   })), [config]);
+  const shiftViewGroup = useCallback(d => setViewGroup(v => {
+    if (v === true) return v;
+    const l = Object.keys(config.collection);
+    return l[(l.indexOf(v) + d + l.length) % l.length];
+  }), [setViewGroup, config]);
+
+  useEffect(() => {
+    function onkeydown(e) {
+      // console.log(e.key, e);
+      if (e.key === " ") {
+        e.preventDefault();
+        setShowHightlight(h => !h);
+      }
+      if (e.key === "ArrowRight") {
+        shiftViewGroup(1);
+      }
+      if (e.key === "ArrowLeft") {
+        shiftViewGroup(-1);
+      }
+    }
+    document.addEventListener("keydown", onkeydown);
+    return () => document.removeEventListener("keydown", onkeydown);
+  }, [setShowHightlight, shiftViewGroup]);
 
   return (
     <>
-      <Typography variant="h5" sx={{
-        overflow: "auto",
-        maxWidth: "100%",
-        padding: "5px 10px",
-        boxSizing: "border-box",
-      }}>{config.title}</Typography>
+      <Stack direction="row" spacing={2} sx={{ m: 1.5 }}>
+        {highlight &&
+          <Chip
+            icon={<LightbulbIcon sx={showHightlight ? { color: 'yellow!important' } : {}}/>}
+            label="Highlight"
+            variant="contained"
+            color="primary"
+            onClick={() => setShowHightlight(s => !s)}
+          />}
+      </Stack>
       <div style={{ maxWidth: '100%', margin: '0 10px' }}>
         <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
           <InputLabel>Target</InputLabel>
@@ -112,7 +143,7 @@ export default function MeetView() {
               duration={config.duration}
               focus={viewFocus}
               setFocus={setViewFocus}
-              highlightRange={highlight}
+              highlightRange={showHightlight && highlight}
             />
           </TableWrapper>
         </Container>

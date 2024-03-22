@@ -13,6 +13,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Linear from "@/components/Linear";
 
 const AvailableListContainer = styled(Linear)`
+  user-select: none;
   box-sizing: border-box;
   justify-content: flex-start;
 `;

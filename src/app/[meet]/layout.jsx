@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { useRouter, usePathname } from 'next/navigation'
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -14,8 +14,8 @@ import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
 const modes = [
-  ["edit", "Editing", EditIcon],
-  ["view", "Viewing", VisibilityIcon],
+  ["edit", "Edit", EditIcon],
+  ["view", "View", VisibilityIcon],
   ["control", "Control", SettingsIcon],
 ];
 
@@ -52,6 +52,11 @@ export default function Meet({ params, children }) {
 
   const pathname = usePathname();
   const tab = pathname.split('/')[2];
+  const nextTab = useCallback(() => {
+    const idx = modes.map(e => e[0]).indexOf(tab);
+    if (idx === -1) return;
+    router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
+  }, [router, config, modes, tab]);
   const FABicon = (() => {
     const current = modes.filter(e => e[0] === tab).pop();
     if (!current) return <InsertEmoticonIcon/>;
@@ -59,13 +64,22 @@ export default function Meet({ params, children }) {
       const Icon = current[2];
       return <Icon onPointerDown={evt => {
         if (evt.pointerType !== "mouse") return;
-        const idx = modes.map(e => e[0]).indexOf(tab);
-        if (idx === -1) return;
-        router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
+        nextTab();
       }}/>;
     }
   })();
   const [FABopen, setFABopen] = useState(false);
+
+  useEffect(() => {
+    function onkeydown(e) {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        nextTab();
+      }
+    }
+    document.addEventListener("keydown", onkeydown);
+    return () => document.removeEventListener("keydown", onkeydown);
+  }, [nextTab]);
 
   return (
     <Context.Provider value={{ config, setConfig }}>
