@@ -6,8 +6,10 @@ import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import GoogleIcon from '@mui/icons-material/Google';
 import EditTimeTable from "@/components/EditTimeTable";
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
@@ -44,6 +46,9 @@ const SplitViewContainer = styled(Container)`
     &.view {
       display: none;
     }
+  }
+  &.no-border {
+    border: none;
   }
 `;
 const TableWrapper = styled.div`
@@ -152,7 +157,6 @@ export default function MeetEdit({ params }) {
           boxSizing: "border-box",
           whiteSpace: "pre-line",
         }}>{config.description}</Typography>}
-      {Boolean(user) || <Alert severity="info" onClick={signIn} sx={{ cursor: 'pointer' }}>Sign in to continue</Alert>}
       <Stack direction="row" spacing={2}>
         {user &&
           <Chip
@@ -166,18 +170,19 @@ export default function MeetEdit({ params }) {
               }
             }}
           />}
-        <Chip
-          icon={<RestartAltIcon/>}
-          label="Clear"
-          variant="contained"
-          color="primary"
-          onClick={async () => {
-            if (window.confirm("Confirm to clear schedule?")) {
-              await sync(await update(tableMap(table, () => false)));
-              message("Schedule cleared", { variant: "success" });
-            }
-          }}
-        />
+        {user &&
+          <Chip
+            icon={<RestartAltIcon/>}
+            label="Clear"
+            variant="contained"
+            color="primary"
+            onClick={async () => {
+              if (window.confirm("Confirm to clear schedule?")) {
+                await sync(await update(tableMap(table, () => false)));
+                message("Schedule cleared", { variant: "success" });
+              }
+            }}
+          />}
       </Stack>
       <Tables>
         <SplitViewContainer style={{ display: focus === null ? 'none' : undefined }}>
@@ -188,20 +193,38 @@ export default function MeetEdit({ params }) {
               style={{ paddingTop: '30px' }}
             />}
         </SplitViewContainer>
-        <SplitViewContainer {...syncScroll(0)} style={{ display: focus !== null ? 'none' : undefined }}>
-          <TableWrapper>
-            <EditTimeTable
-              defaultTable={config.collection[user?.email]?.table || null}
-              disabled={!user}
-              time={config.time}
-              date={config.date}
-              duration={config.duration}
-              value={table}
-              setValue={update}
-              bufferTime={1}
-              alarm={sync}
-            />
-          </TableWrapper>
+        <SplitViewContainer
+          {...syncScroll(0)}
+          style={{ display: focus !== null ? 'none' : undefined }}
+          className={user ? "" : "no-border"}
+        >
+          {user ? (
+            <TableWrapper>
+              <EditTimeTable
+                defaultTable={config.collection[user?.email]?.table || null}
+                disabled={!user}
+                time={config.time}
+                date={config.date}
+                duration={config.duration}
+                value={table}
+                setValue={update}
+                bufferTime={1}
+                alarm={sync}
+              />
+            </TableWrapper>
+          ) : (
+            <div style={{ padding: '50px 0' }}>
+              {user === false ? <CircularProgress/> : (
+                <Chip
+                  icon={<GoogleIcon/>}
+                  label="Sign in to continue"
+                  variant="contained"
+                  color="primary"
+                  onClick={signIn}
+                />
+              )}
+            </div>
+          )}
         </SplitViewContainer>
         <SplitViewContainer className="view" {...syncScroll(1)}>
           <TableWrapper>
