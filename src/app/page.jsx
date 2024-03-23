@@ -14,7 +14,11 @@ import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
-import LaunchIcon from '@mui/icons-material/Launch';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
@@ -63,111 +67,126 @@ export default function Home() {
 
   return (
     <main>
-      <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: '20px 0', gap: '20px' }}>
-        <Stack
-          spacing={3}
-          direction="row"
-          useFlexGap
-          flexWrap="wrap"
-          sx={{ width: '90%', maxWidth: '400px' }}
-          justifyContent="center"
-        >
-          <TextField
-            required
-            size="small"
-            autoComplete="off"
-            fullWidth
-            label="Title"
-            variant="outlined"
-            value={title}
-            error={!title}
-            onChange={e => setTitle(e.target.value)}
-          />
-          <TextField
-            multiline
-            size="small"
-            autoComplete="off"
-            fullWidth
-            label="Description"
-            variant="outlined"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-          />
-          <DateRange>
-            <TextField
-              error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(start)) || duration > 35}
-              size="small"
-              autoComplete="off"
-              type="date"
-              variant="outlined"
-              value={start}
-              onChange={e => setStart(e.target.value)}
-            />
-            -
-            <TextField
-              error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(end)) || duration > 35}
-              size="small"
-              autoComplete="off"
-              type="date"
-              variant="outlined"
-              value={end}
-              helperText={duration > 35 && "Maximum 35 days"}
-              sx={{ '& .MuiFormHelperText-root': { mt: 0, height: 0 } }}
-              onChange={e => setEnd(e.target.value)}
-            />
-          </DateRange>
-          <Group>
-            <Typography gutterBottom>
-              Time:
-            </Typography>
-            <Slider
-              // track="inverted"
-              color={time[0] === time[1] ? "error" : "primary"}
-              value={time}
-              getAriaValueText={v => `${v}.`}
-              valueLabelDisplay="auto"
-              step={1}
-              marks={[0,2,4,6,8,10,12,14,16,18,20,22,24].map(e => ({ value: e, label: `${e}.` }))}
-              min={0}
-              max={24}
-              onChange={(e, v) => setTime(v)}
-            />
-          </Group>
-          <Button
-            variant="contained"
-            onClick={confirm}
-            disabled={[
-              time[0] === time[1],
-              new Date(end).getTime() < new Date(start).getTime(),
-              isNaN(new Date(start)), isNaN(new Date(end)),
-              duration > 35,
-              !title
-            ].some(e => e)}
-          >Go</Button>
-        </Stack>
-        <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, mt: 4, mx: 1, pt: 0, pb: 0, borderRadius: 1.5 }}>
-          <ListItem>
-            <Typography variant="h6" sx={{ my: 1 }}>Recently accessed</Typography>
-          </ListItem>
-          {history.map(({ id, title, date, time, duration }) => {
-            const t1 = interpret(date, time[0]);
-            const t2 = interpret(date, time[1], [0, duration-1]);
-            return (
-              <Fragment key={id}>
-                <Divider component="li" />
-                <ListItem secondaryAction={
-                  <IconButton edge="end" onClick={() => router.push("/" + id)}>
-                    <LaunchIcon />
-                  </IconButton>
-                } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
-                  <ListItemText sx={{ my: 0.5 }} primary={title} secondary={
-                    `[${t1.year}/${t1.month}/${t1.date} ${t1.dow} ~ ${t2.year}/${t2.month}/${t2.date} ${t2.dow}] [${t1.hourPad}:${t1.minutePad} ~ ${t2.hourPad}:${t2.minutePad}]`
-                  }/>
-                </ListItem>
-              </Fragment>
-            );
-          })}
-        </List>
+      <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: '20px 0', gap: '20px', justifyContent: 'space-between' }}>
+        <div>
+          <Accordion defaultExpanded>
+            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+              Create new event
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack
+                spacing={3}
+                direction="row"
+                useFlexGap
+                flexWrap="wrap"
+                sx={{ width: '100%', maxWidth: '400px' }}
+                justifyContent="center"
+              >
+                <TextField
+                  required
+                  size="small"
+                  autoComplete="off"
+                  fullWidth
+                  label="Title"
+                  variant="outlined"
+                  value={title}
+                  error={!title}
+                  onChange={e => setTitle(e.target.value)}
+                />
+                <TextField
+                  multiline
+                  size="small"
+                  autoComplete="off"
+                  fullWidth
+                  label="Description"
+                  variant="outlined"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                />
+                <DateRange>
+                  <TextField
+                    error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(start)) || duration > 35}
+                    size="small"
+                    autoComplete="off"
+                    type="date"
+                    variant="outlined"
+                    value={start}
+                    onChange={e => setStart(e.target.value)}
+                  />
+                  -
+                  <TextField
+                    error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(end)) || duration > 35}
+                    size="small"
+                    autoComplete="off"
+                    type="date"
+                    variant="outlined"
+                    value={end}
+                    helperText={duration > 35 && "Maximum 35 days"}
+                    sx={{ '& .MuiFormHelperText-root': { mt: 0, height: 0 } }}
+                    onChange={e => setEnd(e.target.value)}
+                  />
+                </DateRange>
+                <Group>
+                  <Typography gutterBottom>
+                    Time:
+                  </Typography>
+                  <Slider
+                    // track="inverted"
+                    color={time[0] === time[1] ? "error" : "primary"}
+                    value={time}
+                    getAriaValueText={v => `${v}.`}
+                    valueLabelDisplay="auto"
+                    step={1}
+                    marks={[0,2,4,6,8,10,12,14,16,18,20,22,24].map(e => ({ value: e, label: `${e}.` }))}
+                    min={0}
+                    max={24}
+                    onChange={(e, v) => setTime(v)}
+                  />
+                </Group>
+                <Button
+                  variant="contained"
+                  onClick={confirm}
+                  disabled={[
+                    time[0] === time[1],
+                    new Date(end).getTime() < new Date(start).getTime(),
+                    isNaN(new Date(start)), isNaN(new Date(end)),
+                    duration > 35,
+                    !title
+                  ].some(e => e)}
+                >Go</Button>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+              Recently accessed
+            </AccordionSummary>
+            <AccordionDetails>
+              <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, pt: 0, pb: 0, borderRadius: 1.5 }}>
+                {history.map(({ id, title, date, time, duration }) => {
+                  const t1 = interpret(date, time[0]);
+                  const t2 = interpret(date, time[1], [0, duration-1]);
+                  return (
+                    <Fragment key={id}>
+                      <Divider component="li" />
+                      <ListItem secondaryAction={
+                        <IconButton edge="end" onClick={() => router.push("/" + id)}>
+                          <NavigateNextIcon color="primary"/>
+                        </IconButton>
+                      } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
+                        <ListItemText sx={{ my: 0.5, '& .MuiListItemText-secondary': {
+                          fontFamily: 'consolas', opacity: 0.8
+                        } }} primary={title} secondary={
+                          `[${t1.monthPad}/${t1.datePad} ~ ${t2.monthPad}/${t2.datePad}] [${t1.hourPad} ~ ${t2.hourPad}] ${duration} days`
+                        }/>
+                      </ListItem>
+                    </Fragment>
+                  );
+                })}
+              </List>
+            </AccordionDetails>
+          </Accordion>
+        </div>
         <Stack
           direction="row"
           alignItems="center"

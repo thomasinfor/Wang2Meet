@@ -71,7 +71,7 @@ export default function MySchedule() {
           <div>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                Name
+                Display name
               </AccordionSummary>
               <AccordionDetails>
                 <Stack direction="row" spacing={1}>

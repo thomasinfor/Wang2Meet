@@ -10,6 +10,20 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Input from '@mui/material/Input';
+import TuneIcon from '@mui/icons-material/Tune';
+import PushPinIcon from '@mui/icons-material/PushPin';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
@@ -94,8 +108,21 @@ export default function MeetView() {
     return () => document.removeEventListener("keydown", onkeydown);
   }, [setShowHightlight, shiftViewGroup]);
 
+  const [pconfigOpen, setPconfigOpen] = useState(false);
+  const defaultPconfig = useMemo(() => Object.fromEntries(Object.keys(config.collection).map(k => [k, 1])), [config.collection]);
+  const [pconfig, setPconfig] = useState(defaultPconfig);
+  useEffect(() => {
+    setPconfig(p => Object.fromEntries(Object.entries(defaultPconfig).map(([k, v]) => [k, (k in p) ? p[k] : v])));
+  }, [defaultPconfig]);
+
   return (
     <>
+      {viewGroup === true && viewFocus &&
+        <AvailableList
+          list={getAvailable(viewFocus)}
+          time={interpret(config.date, config.time[0], viewFocus)}
+          style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
+        />}
       <Stack direction="row" spacing={2} sx={{ m: 1.5 }}>
         {highlight &&
           <Chip
@@ -106,7 +133,7 @@ export default function MeetView() {
             onClick={() => setShowHightlight(s => !s)}
           />}
       </Stack>
-      <div style={{ maxWidth: '100%', margin: '0 10px' }}>
+      <Stack direction="row" alignItems="center">
         <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
           <InputLabel>Target</InputLabel>
           <Select
@@ -124,13 +151,11 @@ export default function MeetView() {
               </SmallMenuItem>)}
           </Select>
         </FormControl>
-      </div>
-      {viewGroup === true && viewFocus &&
-        <AvailableList
-          list={getAvailable(viewFocus)}
-          time={interpret(config.date, config.time[0], viewFocus)}
-          style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
-        />}
+        {viewGroup === true &&
+          <IconButton color="primary" onClick={() => setPconfigOpen(true)}>
+            <TuneIcon/>
+          </IconButton>}
+      </Stack>
       <Tables>
         <Container>
           <TableWrapper className="constrained">
@@ -144,11 +169,97 @@ export default function MeetView() {
               focus={viewFocus}
               setFocus={setViewFocus}
               highlightRange={showHightlight && highlight}
+              weight={pconfig}
             />
           </TableWrapper>
         </Container>
       </Tables>
+      <ParticipantConfig
+        config={config}
+        value={pconfig}
+        setValue={setPconfig}
+        open={pconfigOpen}
+        onClose={() => setPconfigOpen(false)}
+        fullWidth
+      />
     </>
   );
 }
 
+function ParticipantConfig({ config, value, setValue, sx={}, open=true, onClose=()=>{}, ...props }) {
+  const [focus, setFocus] = useState(null);
+  const [transparent, setTransparent] = useState(null);
+
+  useEffect(() => {
+    setFocus(null);
+  }, [open]);
+
+  useEffect(() => {
+    setTransparent(true);
+    const id = setTimeout(() => setTransparent(false), 1000);
+    return () => clearTimeout(id);
+  }, [value, setTransparent]);
+
+  return (
+    <Dialog {...props} onClose={onClose} open={open} sx={{ ...sx, opacity: transparent ? 0.8 : undefined }}>
+      <DialogTitle>Customization</DialogTitle>
+      <DialogContent>
+        {/*<DialogContentText>
+          To subscribe to this website, please enter your email address here. We
+          will send updates occasionally.
+        </DialogContentText>*/}
+        <Table>
+          <TableHead>
+            <TableRow sx={{ "& > *": { pb: 1 } }}>
+              <TableCell>Participants</TableCell>
+              <TableCell align="center">Pin</TableCell>
+              <TableCell align="right">Weight</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.entries(value).sort(
+              (a, b) => a[1] === Infinity ? -1 : b[1] === Infinity ? 1 : b[1]-a[1]
+            ).map(([email, weight]) => (
+              <TableRow
+                key={email}
+                sx={{ '&:last-child td, &:last-child th': { border: 0 }, bgcolor: email === focus ? "#eee" : undefined }}
+                onClick={() => setFocus(email)}
+              >
+                <TableCell component="th" sx={{ py: 0.5 }} scope="row">
+                  <Typography variant="body1" display="block">
+                    {config.collection[email].name}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ lineHeight: 1 }} color={"#aaa"}>
+                    {email}
+                  </Typography>
+                </TableCell>
+                <TableCell align="center" sx={{ py: 0 }}>
+                  <IconButton color={weight === Infinity ? "primary" : "disabled"} onClick={
+                    () => setValue(v => ({ ...v, [email]: v[email] === Infinity ? 1 : Infinity }))
+                  }>
+                    <PushPinIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+                <TableCell align="right" sx={{ py: 1.5 }}>
+                  <Input
+                    value={String(weight)}
+                    size="small"
+                    type="number"
+                    sx={{ width: 40, "& input": { textAlign: "right" } }}
+                    onChange={e => {
+                      setValue(v => ({ ...v, [email]: Math.max(e.target.value, 0) }));
+                      e.target.scrollIntoView();
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Done</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

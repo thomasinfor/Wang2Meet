@@ -56,7 +56,7 @@ export default function Meet({ params, children }) {
     const idx = modes.map(e => e[0]).indexOf(tab);
     if (idx === -1) return;
     router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
-  }, [router, config, modes, tab]);
+  }, [router, config, tab]);
   const FABicon = (() => {
     const current = modes.filter(e => e[0] === tab).pop();
     if (!current) return <InsertEmoticonIcon/>;
@@ -73,8 +73,8 @@ export default function Meet({ params, children }) {
   useEffect(() => {
     function onkeydown(e) {
       if (e.key === "Tab") {
-        e.preventDefault();
-        nextTab();
+        // e.preventDefault();
+        // nextTab();
       }
     }
     document.addEventListener("keydown", onkeydown);

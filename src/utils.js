@@ -78,3 +78,4 @@ export function getCalendarLink(meet, start, end) {
   return "https://www.google.com/calendar/render?" + params;
 }
 export function slotBefore(a, b) { return a[1] === b[1] ? a[0] <= b[0] : a[1] <= b[1]; }
+export function sum(x) { return x.reduce((a, b) => a + b, 0); }
