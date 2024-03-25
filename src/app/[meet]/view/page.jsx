@@ -281,7 +281,7 @@ function ParticipantConfig({ config, value, setValue, ...props }) {
             </TableCell>
             <TableCell align="right" sx={{ py: 1.5 }}>
               <Input
-                value={String(weight)}
+                value={weight === Infinity ? "" : String(weight)}
                 size="small"
                 type="number"
                 sx={{ width: 40, "& input": { textAlign: "right" } }}

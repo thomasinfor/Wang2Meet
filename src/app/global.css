@@ -13,11 +13,11 @@ input[type=number] {
 }
 @media (width < 700px) {
   .pc {
-    display: none;
+    display: none!important;
   }
 }
 @media (width >= 700px) {
   .mobile {
-    display: none;
+    display: none!important;
   }
 }
