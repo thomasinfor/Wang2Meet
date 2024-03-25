@@ -12,7 +12,7 @@ function Grid({ ...p }) {
   const { focus, level, maxPeople, highlightRange: range, ratio } = useContext(Context);
   const focused = focus && p.i == focus[0] && p.j == focus[1];
   const style = { fontSize: '4px' };
-  if (ratio)
+  if (ratio && ratio[p.i][p.j] !== false)
     Object.assign(style, { background: colorScale('#339900', ratio[p.i][p.j]) });
   else
     Object.assign(style, { background: "gray" });
@@ -55,28 +55,22 @@ export default function ViewTimeTable({
   const maxPeople = useMemo(() => available.flat().reduce((a, c) => Math.max(a, c.length), 0), [available]);
   const level = useMemo(() => tableMap(available, e => maxPeople === 0 ? null : e.length), [available, maxPeople]);
   const ratio = useMemo(() => {
-    if (maxPeople === 0) return false;
-    if (weight) {
-      const vals = Object.values(weight);
-      if (vals.includes(Infinity)) {
-        const sum_w = sum(vals.filter(e => e !== Infinity));
-        if (sum_w === 0)
-          return tableMap(level, e => Number(e === maxPeople));
-        return tableMap(EMPTY_TABLE, (_, i, j) =>
-          Number(Object.entries(value).every(([k, v]) => weight[k] !== Infinity || v.table[i][j])) *
-          sum(Object.entries(value).map(([k, v]) => weight[k] === Infinity ? 0 : Number(v.table[i][j]) * weight[k])) / sum_w
-        );
-      } else {
-        const sum_w = sum(vals);
-        if (sum_w === 0)
-          return false;
-        else{
-          return tableMap(EMPTY_TABLE, (_, i, j) =>
-            sum(Object.entries(value).map(([k, v]) => Number(v.table[i][j]) * weight[k])) / sum_w);
-        }
-      }
-    } else return tableMap(level, e => e / maxPeople);
-  }, [level, maxPeople, EMPTY_TABLE, value, weight]);
+    const v = Object.fromEntries(Object.entries(value).filter(([k,]) => !(weight && weight[k] === Infinity)));
+    const w = weight || Object.fromEntries(Object.entries(value).map(([k,]) => [k, 1]));
+    const sum_w = sum(Object.values(w).filter(e => e !== Infinity));
+    const allowed = tableMap(EMPTY_TABLE, (_, i, j) =>
+      Object.entries(value).every(([k, v]) => w[k] !== Infinity || v.table[i][j])
+    );
+
+    if (sum_w === 0) {
+      if (Object.entries(value).some(([k,]) => w[k] === Infinity))
+        return tableMap(allowed, e => e && 0);
+      else
+        return false;
+    }
+    return tableMap(EMPTY_TABLE, (_, i, j) =>
+      allowed[i][j] && sum(Object.entries(v).map(([k, v]) => Number(v.table[i][j]) * w[k])) / sum_w);
+  }, [EMPTY_TABLE, value, weight]);
 
   return (
     <Context.Provider value={{ focus, available, level, maxPeople, highlightRange, ratio }}>

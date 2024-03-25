@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { Fragment, useState, useMemo } from "react";
+import { Fragment, useState, useMemo, useCallback } from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
 import TextField from '@mui/material/TextField';
@@ -65,11 +65,17 @@ export default function Home() {
     router.push(`/${res.id}`);
   }
 
+  const [tab, setTab] = useState("create_new");
+  const accordionControl = useCallback(id => ({
+    expanded: tab === id,
+    onChange: (_, newExpanded) => setTab(newExpanded ? id : false)
+  }), [tab, setTab]);
+
   return (
     <main>
       <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: '20px 0', gap: '20px', justifyContent: 'space-between' }}>
-        <div>
-          <Accordion defaultExpanded>
+        <div style={{ maxWidth: '90%' }}>
+          <Accordion {...accordionControl("create_new")}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
               Create new event
             </AccordionSummary>
@@ -157,7 +163,7 @@ export default function Home() {
               </Stack>
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+          <Accordion {...accordionControl("recently_accessed")}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
               Recently accessed
             </AccordionSummary>

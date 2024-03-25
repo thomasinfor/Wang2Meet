@@ -22,6 +22,8 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Input from '@mui/material/Input';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import TuneIcon from '@mui/icons-material/Tune';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
@@ -188,21 +190,21 @@ export default function MeetView() {
 
 function ParticipantConfig({ config, value, setValue, sx={}, open=true, onClose=()=>{}, ...props }) {
   const [focus, setFocus] = useState(null);
-  const [transparent, setTransparent] = useState(null);
+  const [transparent, setTransparent] = useState(false);
 
   useEffect(() => {
     setFocus(null);
   }, [open]);
 
-  useEffect(() => {
-    setTransparent(true);
-    const id = setTimeout(() => setTransparent(false), 1000);
-    return () => clearTimeout(id);
-  }, [value, setTransparent]);
-
   return (
     <Dialog {...props} onClose={onClose} open={open} sx={{ ...sx, opacity: transparent ? 0.8 : undefined }}>
-      <DialogTitle>Customization</DialogTitle>
+      <DialogTitle>
+        Customization
+        <FormControlLabel control={<Switch/>} label="transparent" sx={{
+          position: 'absolute',
+          right: 0
+        }} onChange={e => setTransparent(e.target.checked)} checked={transparent}/>
+      </DialogTitle>
       <DialogContent>
         {/*<DialogContentText>
           To subscribe to this website, please enter your email address here. We
@@ -223,7 +225,7 @@ function ParticipantConfig({ config, value, setValue, sx={}, open=true, onClose=
               <TableRow
                 key={email}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 }, bgcolor: email === focus ? "#eee" : undefined }}
-                onClick={() => setFocus(email)}
+                onPointerDown={() => setFocus(email)}
               >
                 <TableCell component="th" sx={{ py: 0.5 }} scope="row">
                   <Typography variant="body1" display="block">
@@ -250,6 +252,7 @@ function ParticipantConfig({ config, value, setValue, sx={}, open=true, onClose=
                       setValue(v => ({ ...v, [email]: Math.max(e.target.value, 0) }));
                       e.target.scrollIntoView();
                     }}
+                    onFocus={e => e.target.select()}
                   />
                 </TableCell>
               </TableRow>
