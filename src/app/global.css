@@ -11,3 +11,13 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+@media (width < 700px) {
+  .pc {
+    display: none;
+  }
+}
+@media (width >= 700px) {
+  .mobile {
+    display: none;
+  }
+}

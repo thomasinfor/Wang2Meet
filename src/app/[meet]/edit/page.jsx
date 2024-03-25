@@ -42,9 +42,6 @@ const SplitViewContainer = styled(Container)`
   width: 45%;
   @media (max-width: 700px) {
     width: 100%;
-    &.view {
-      display: none;
-    }
   }
   &.no-border {
     border: none;
@@ -189,7 +186,7 @@ export default function MeetEdit({ params }) {
             <AvailableList
               time={interpret(config.date, config.time[0], focus)}
               list={getAvailable(focus)}
-              style={{ paddingTop: '30px' }}
+              style={{ paddingTop: '30px', paddingBottom: '30px' }}
             />}
         </SplitViewContainer>
         <SplitViewContainer
@@ -225,7 +222,7 @@ export default function MeetEdit({ params }) {
             </div>
           )}
         </SplitViewContainer>
-        <SplitViewContainer className="view" {...syncScroll(1)}>
+        <SplitViewContainer className="pc" {...syncScroll(1)}>
           <TableWrapper>
             <ViewTimeTable
               value={config.collection}

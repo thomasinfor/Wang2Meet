@@ -53,6 +53,15 @@ const Container = styled.div`
   border: 1px dashed black;
   border-radius: 5px;
 `;
+const SplitViewContainer = styled(Container)`
+  width: 45%;
+  @media (max-width: 700px) {
+    width: 100%;
+  }
+  &.no-border {
+    border: none;
+  }
+`;
 const TableWrapper = styled.div`
   max-width: 100%;
   max-height: 95vh;
@@ -82,7 +91,13 @@ export default function MeetView() {
   const [showHightlight, setShowHightlight] = useState(true);
 
   const [viewGroup, setViewGroup] = useState(true);
-  const [viewFocus, setViewFocus] = useState([0, 0]);
+  const [viewFocus, setViewFocus] = useState(null);
+  useEffect(() => {
+    if (viewGroup === true)
+      setViewFocus(null);
+    else
+      setViewFocus(f => f || [0, 0]);
+  }, [setViewFocus, viewGroup]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
   })), [config]);
@@ -116,14 +131,16 @@ export default function MeetView() {
   useEffect(() => {
     setPconfig(p => Object.fromEntries(Object.entries(defaultPconfig).map(([k, v]) => [k, (k in p) ? p[k] : v])));
   }, [defaultPconfig]);
+  const [modalTransparent, setModalTransparent] = useState(false);
 
   return (
     <>
       {viewGroup === true && viewFocus &&
         <AvailableList
+          className="mobile"
           list={getAvailable(viewFocus)}
           time={interpret(config.date, config.time[0], viewFocus)}
-          style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
+          style={{ position: 'fixed', top: '75px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
         />}
       <Stack direction="row" spacing={2} sx={{ m: 1.5 }}>
         {highlight &&
@@ -154,15 +171,32 @@ export default function MeetView() {
           </Select>
         </FormControl>
         {viewGroup === true &&
-          <IconButton color="primary" onClick={() => setPconfigOpen(true)}>
+          <IconButton color="primary" onClick={() => setPconfigOpen(true)} className="mobile">
             <TuneIcon/>
           </IconButton>}
       </Stack>
       <Tables>
-        <Container>
-          <TableWrapper className="constrained">
+        <SplitViewContainer className="pc">
+          {viewFocus ? (
+            <AvailableList
+              list={getAvailable(viewFocus)}
+              time={interpret(config.date, config.time[0], viewFocus)}
+              style={{ paddingTop: '30px', paddingBottom: '30px' }}
+            />
+          ) : (viewGroup === true &&
+            <TableWrapper style={{ width: '100%' }}>
+              <ParticipantConfig
+                config={config}
+                value={pconfig}
+                setValue={setPconfig}
+              />
+            </TableWrapper>
+          )}
+        </SplitViewContainer>
+        <SplitViewContainer>
+          <TableWrapper>
             <ViewTimeTable
-              keepFocus
+              keepFocus={viewGroup !== true}
               value={viewGroup === true ? config.collection
                 : { [viewGroup]: config.collection[viewGroup] }}
               time={config.time}
@@ -171,98 +205,96 @@ export default function MeetView() {
               focus={viewFocus}
               setFocus={setViewFocus}
               highlightRange={showHightlight && highlight}
-              weight={pconfig}
+              weight={viewGroup === true ? pconfig : false}
             />
           </TableWrapper>
-        </Container>
+        </SplitViewContainer>
       </Tables>
-      <ParticipantConfig
-        config={config}
-        value={pconfig}
-        setValue={setPconfig}
-        open={pconfigOpen}
-        onClose={() => setPconfigOpen(false)}
+      <Dialog
         fullWidth
-      />
+        onClose={() => setPconfigOpen(false)}
+        open={pconfigOpen}
+        sx={{ opacity: modalTransparent ? 0.8 : undefined }}
+        className="mobile"
+      >
+        <DialogTitle>
+          Customization
+          <FormControlLabel control={<Switch/>} label="transparent" sx={{
+            position: 'absolute',
+            right: 0
+          }} onChange={e => setModalTransparent(e.target.checked)} checked={modalTransparent}/>
+        </DialogTitle>
+        <DialogContent>
+          {/*<DialogContentText>
+            To subscribe to this website, please enter your email address here. We
+            will send updates occasionally.
+          </DialogContentText>*/}
+          <ParticipantConfig
+            config={config}
+            value={pconfig}
+            setValue={setPconfig}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPconfigOpen(false)}>Done</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
 
-function ParticipantConfig({ config, value, setValue, sx={}, open=true, onClose=()=>{}, ...props }) {
+function ParticipantConfig({ config, value, setValue, ...props }) {
   const [focus, setFocus] = useState(null);
-  const [transparent, setTransparent] = useState(false);
-
-  useEffect(() => {
-    setFocus(null);
-  }, [open]);
 
   return (
-    <Dialog {...props} onClose={onClose} open={open} sx={{ ...sx, opacity: transparent ? 0.8 : undefined }}>
-      <DialogTitle>
-        Customization
-        <FormControlLabel control={<Switch/>} label="transparent" sx={{
-          position: 'absolute',
-          right: 0
-        }} onChange={e => setTransparent(e.target.checked)} checked={transparent}/>
-      </DialogTitle>
-      <DialogContent>
-        {/*<DialogContentText>
-          To subscribe to this website, please enter your email address here. We
-          will send updates occasionally.
-        </DialogContentText>*/}
-        <Table>
-          <TableHead>
-            <TableRow sx={{ "& > *": { pb: 1 } }}>
-              <TableCell>Participants</TableCell>
-              <TableCell align="center">Pin</TableCell>
-              <TableCell align="right">Weight</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {Object.entries(value).sort(
-              (a, b) => a[1] === Infinity ? -1 : b[1] === Infinity ? 1 : b[1]-a[1]
-            ).map(([email, weight]) => (
-              <TableRow
-                key={email}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 }, bgcolor: email === focus ? "#eee" : undefined }}
-                onPointerDown={() => setFocus(email)}
-              >
-                <TableCell component="th" sx={{ py: 0.5 }} scope="row">
-                  <Typography variant="body1" display="block">
-                    {config.collection[email].name}
-                  </Typography>
-                  <Typography variant="caption" display="block" sx={{ lineHeight: 1 }} color={"#aaa"}>
-                    {email}
-                  </Typography>
-                </TableCell>
-                <TableCell align="center" sx={{ py: 0 }}>
-                  <IconButton color={weight === Infinity ? "primary" : "disabled"} onClick={
-                    () => setValue(v => ({ ...v, [email]: v[email] === Infinity ? 1 : Infinity }))
-                  }>
-                    <PushPinIcon fontSize="small" />
-                  </IconButton>
-                </TableCell>
-                <TableCell align="right" sx={{ py: 1.5 }}>
-                  <Input
-                    value={String(weight)}
-                    size="small"
-                    type="number"
-                    sx={{ width: 40, "& input": { textAlign: "right" } }}
-                    onChange={e => {
-                      setValue(v => ({ ...v, [email]: Math.max(e.target.value, 0) }));
-                      e.target.scrollIntoView();
-                    }}
-                    onFocus={e => e.target.select()}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Done</Button>
-      </DialogActions>
-    </Dialog>
+    <Table {...props}>
+      <TableHead>
+        <TableRow sx={{ "& > *": { pb: 1 } }}>
+          <TableCell>Participants</TableCell>
+          <TableCell align="center">Pin</TableCell>
+          <TableCell align="right">Weight</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {Object.entries(value).sort(
+          (a, b) => a[1] === Infinity ? -1 : b[1] === Infinity ? 1 : b[1]-a[1]
+        ).map(([email, weight]) => (
+          <TableRow
+            key={email}
+            sx={{ '&:last-child td, &:last-child th': { border: 0 }, bgcolor: email === focus ? "#eee" : undefined }}
+            onPointerDown={() => setFocus(email)}
+          >
+            <TableCell component="th" sx={{ py: 0.5 }} scope="row">
+              <Typography variant="body1" display="block">
+                {config.collection[email].name}
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ lineHeight: 1 }} color={"#aaa"}>
+                {email}
+              </Typography>
+            </TableCell>
+            <TableCell align="center" sx={{ py: 0 }}>
+              <IconButton color={weight === Infinity ? "primary" : "disabled"} onClick={
+                () => setValue(v => ({ ...v, [email]: v[email] === Infinity ? 1 : Infinity }))
+              }>
+                <PushPinIcon fontSize="small" />
+              </IconButton>
+            </TableCell>
+            <TableCell align="right" sx={{ py: 1.5 }}>
+              <Input
+                value={String(weight)}
+                size="small"
+                type="number"
+                sx={{ width: 40, "& input": { textAlign: "right" } }}
+                onChange={e => {
+                  setValue(v => ({ ...v, [email]: Math.max(e.target.value, 0) }));
+                  e.target.scrollIntoView();
+                }}
+                onFocus={e => e.target.select()}
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
