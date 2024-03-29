@@ -19,7 +19,13 @@ const nextConfig = withPWA({
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['ssl.gstatic.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ssl.gstatic.com',
+        port: '',
+      },
+    ],
   },
 });
 

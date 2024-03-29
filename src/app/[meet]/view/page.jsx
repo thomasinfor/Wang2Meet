@@ -256,9 +256,9 @@ function ParticipantConfig({ config, value, setValue, ...props }) {
         </TableRow>
       </TableHead>
       <TableBody>
-        {Object.entries(value).sort(
+        {Object.entries(value)/*.sort(
           (a, b) => a[1] === Infinity ? -1 : b[1] === Infinity ? 1 : b[1]-a[1]
-        ).map(([email, weight]) => (
+        )*/.map(([email, weight]) => (
           <TableRow
             key={email}
             sx={{ '&:last-child td, &:last-child th': { border: 0 }, bgcolor: email === focus ? "#eee" : undefined }}
