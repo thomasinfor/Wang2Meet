@@ -79,7 +79,7 @@ export default function Home() {
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
               Create new event
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails sx={{ display: 'flex', justifyContent: 'center' }}>
               <Stack
                 spacing={3}
                 direction="row"

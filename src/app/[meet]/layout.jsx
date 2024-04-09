@@ -4,6 +4,11 @@ import { useState, useEffect, createContext, useContext, useCallback } from "rea
 import { useRouter, usePathname } from 'next/navigation'
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
+import Typography from '@mui/material/Typography';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -109,6 +114,32 @@ export default function Meet({ params, children }) {
                 />
               ))}
             </SpeedDial>
+            <Accordion sx={{
+              maxWidth: '90%', minWidth: '400px',
+              borderWidth: 1, borderStyle: "solid", borderColor: "primary.main",
+              borderRadius: "12px!important", boxShadow: "none", "&:before": { display: 'none' },
+              "& *:not(.MuiSvgIcon-root, .MuiAccordionSummary-expandIconWrapper)" : {
+                overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
+              }
+            }} defaultExpanded>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon/>}
+                sx={{ "& .MuiAccordionSummary-content:not(.Mui-expanded)" : {
+                  whiteSpace: "nowrap",
+                } }}>
+                <Typography variant="h5" sx={{
+                  overflow: "hidden",
+                  width: "100%",
+                  padding: "0 10px",
+                  boxSizing: "border-box",
+                  textAlign: "center",
+                }}>{config.title}</Typography>
+              </AccordionSummary>
+              {config.description &&
+                <AccordionDetails sx={{ whiteSpace: "pre-line", display: "flex", justifyContent: "center" }}>
+                  <div>{config.description}</div>
+                </AccordionDetails>}
+            </Accordion>
             {children}
           </Linear>}
       </main>

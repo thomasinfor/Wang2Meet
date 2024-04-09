@@ -3,7 +3,6 @@ import React from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import styled from "@emotion/styled";
 import Chip from '@mui/material/Chip';
-import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
@@ -140,19 +139,6 @@ export default function MeetEdit({ params }) {
 
   return (
     <>
-      <Typography variant="h5" sx={{
-        overflow: "auto",
-        maxWidth: "100%",
-        padding: "5px 10px",
-        boxSizing: "border-box",
-      }}>{config.title}</Typography>
-      {config.description &&
-        <Typography variant="p" sx={{
-          overflow: "auto",
-          maxWidth: "100%",
-          boxSizing: "border-box",
-          whiteSpace: "pre-line",
-        }}>{config.description}</Typography>}
       <Stack direction="row" spacing={2}>
         {user &&
           <Chip
@@ -209,7 +195,7 @@ export default function MeetEdit({ params }) {
               />
             </TableWrapper>
           ) : (
-            <div style={{ padding: '50px 0' }}>
+            <div style={{ padding: '20px 0' }}>
               {user === false ? <CircularProgress/> : (
                 <Chip
                   icon={<GoogleIcon/>}
