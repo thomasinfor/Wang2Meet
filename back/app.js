@@ -20,6 +20,7 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true, validate: { validator: e => e.length > 0 } },
   table: String,
+  theme: { type: String, validate: { validator: e => /#[\da-f]{6}/.test(e) } },
 }, {
   methods: {
     async sync(user) {
@@ -185,9 +186,12 @@ App.get('/me', wrapper({ auth: true }, async (req, res) => {
 }));
 
 App.post('/me', wrapper({ auth: true }, async (req, res) => {
-  let { table } = req.body;
+  let { table, theme } = req.body;
   if (table && checkTable(String(table))) {
     req.user.table = String(table);
+  }
+  if (theme) {
+    req.user.theme = theme;
   }
   await req.user.save();
   res.status(200).json(req.user);

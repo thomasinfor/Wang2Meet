@@ -4,12 +4,12 @@ import { useMemo } from "react";
 import styled from "@emotion/styled";
 import { Time } from "@/utils";
 
-const GridElement = styled.td`
+const GridElement = styled.td(({ theme }) => `
   background: #DDD;
   touch-action: none;
   border: 1px solid black;
   &.on {
-    background: #66aaaa;
+    background: ${theme.palette.primary.main};
   }
   &.covered {
     border-width: 0;
@@ -30,7 +30,7 @@ const GridElement = styled.td`
   & * {
     pointer-events: none;
   }
-`;
+`);
 
 export default function BaseGrid({
   i, j, time, down=()=>{}, enter=()=>{}, leave=()=>{}, click=()=>{}, id,

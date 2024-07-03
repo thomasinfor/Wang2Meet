@@ -30,14 +30,14 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.webmanifest"/>
       </head>
       <body className={inter.className} style={{ margin: 0 }}>
-        <Theme>
-          <StatusContextProvider>
-            <AuthContextProvider>
+        <StatusContextProvider>
+          <AuthContextProvider>
+            <Theme>
               <Navbar/>
               {children}
-            </AuthContextProvider>
-          </StatusContextProvider>
-        </Theme>
+            </Theme>
+          </AuthContextProvider>
+        </StatusContextProvider>
       </body>
     </html>
   );

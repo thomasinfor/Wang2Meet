@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, getAuth, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useStatus } from "@/context/Status";
@@ -51,7 +51,10 @@ Login link: https://w2m.wang.works/sign-in
       //       "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
       //     );
       // }
-      await signInWithRedirect(auth, provider);
+      if (process.env.NODE_ENV === 'development')
+        await signInWithPopup(auth, provider);
+      else
+        await signInWithRedirect(auth, provider);
       window.location.reload();
     } else {
       navigator.clipboard.writeText(window.location.origin + "/sign-in");

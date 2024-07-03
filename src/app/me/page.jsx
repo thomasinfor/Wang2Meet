@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from 'next/navigation';
 import TextField from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
@@ -13,6 +13,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PaletteIcon from '@mui/icons-material/Palette';
 import { dump, parse } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
@@ -24,6 +25,8 @@ export default function MySchedule() {
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
   const [name, setName] = useState("");
+  const [color, setColor] = useState("#");
+  const badColor = useMemo(() => !/#[\da-f]{6}/.test(color), [color]);
 
   useEffect(() => {
     if (user) (async () => {
@@ -97,6 +100,49 @@ export default function MySchedule() {
                       }
                     }}
                     disabled={name.length === 0}
+                  >Update</Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                Theme color
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack direction="row" spacing={1} sx={{ pb: 1 }}>
+                  <TextField
+                    size="small"
+                    autoComplete="off"
+                    fullWidth
+                    label="Color code"
+                    variant="outlined"
+                    helperText="format: #123abc"
+                    value={color}
+                    onChange={e => setColor(e.target.value || '#')}
+                    error={badColor}
+                    InputProps={{
+                      endAdornment: <PaletteIcon color="primary" sx={badColor ? {} : { color }}/>
+                    }}
+                    sx={{'.MuiFormHelperText-root': { height: 0, mt: 0 }}}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      try {
+                        let res = await request("POST", "/api/me", {
+                          body: {
+                            theme: color
+                          }
+                        });
+                        if (!res.ok)
+                          throw Error(`Request failed with status code ${res.status}`);
+                        window.location.reload();
+                      } catch(e) {
+                        console.error(e);
+                        window.alert("Update failed");
+                      }
+                    }}
+                    disabled={badColor}
                   >Update</Button>
                 </Stack>
               </AccordionDetails>
