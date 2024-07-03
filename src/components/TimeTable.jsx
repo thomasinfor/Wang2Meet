@@ -36,7 +36,7 @@ const DateCell = styled.td`
   }
   line-height: 100%;
   white-space: pre;
-  padding: 5px;
+  padding: 3% 5px;
   position: sticky;
   top: 0;
   background: #fff;

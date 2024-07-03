@@ -11,7 +11,7 @@ const nextConfig = withPWA({
     return [
       {
         source: '/api/:path*',
-        destination: dev ? 'http://localhost:4000/:path*' : '/api/:path*',
+        destination: `${process.env.API_PATH}/:path*`,
       },
     ]
   },

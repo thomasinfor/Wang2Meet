@@ -14,7 +14,7 @@ import AvailableList from "@/components/AvailableList";
 import { dump, parse, interpret, defaultTime, defaultDate, tableMap, cast } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
-import { useConfig } from "../layout";
+import { useConfig } from "../MeetPanel";
 
 const Tables = styled.div`
   display: flex;

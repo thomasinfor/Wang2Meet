@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
 import { interpret, slotBefore, getCalendarLink } from "@/utils";
-import { useConfig } from "../layout";
+import { useConfig } from "../MeetPanel";
 
 const Tables = styled.div`
   display: flex;
