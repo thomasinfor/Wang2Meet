@@ -100,7 +100,11 @@ export default function MeetEdit({ params }) {
           await sync(await update(tableMap(table, (e, i, j) => e || t[i][j])));
           message("Schedule pasted", { variant: "success" });
         } else {
-          message("Default schedule not set", { variant: "error" });
+          if (window.confirm("Default schedule not set.\nProceed to make your default schedule?")) {
+            window.open("/me#default-schedule");
+          } else {
+            message("Default schedule not set", { variant: "error" });
+          }
         }
       } else {
         window.alert("Operation failed");

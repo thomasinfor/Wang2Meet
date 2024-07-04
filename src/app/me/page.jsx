@@ -10,6 +10,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import Linear from "@/components/Linear";
 import EditTimeTable from "@/components/EditTimeTable";
 import Accordion from '@mui/material/Accordion';
+import Typography from '@mui/material/Typography';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -18,15 +19,24 @@ import { dump, parse } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
-export default function MySchedule() {
+function Details({ children }) {
+  return (
+    <Typography sx={{ color: 'text.secondary', "&:before": { content: "'> '" } }} variant="caption">
+      {children}
+    </Typography>
+  );
+}
+
+export default function Me() {
   const router = useRouter();
   const { message } = useStatus();
   const { user, request, updateUser, logOut } = useAuth();
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#");
-  const badColor = useMemo(() => !/#[\da-f]{6}/.test(color), [color]);
+  const [color, setColor] = useState("");
+  const badColor = useMemo(() => !/^[\da-f]{6}$/.test(color), [color]);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (user) (async () => {
@@ -66,15 +76,32 @@ export default function MySchedule() {
     }
   }, [request, table, setInfo]);
 
+  function accordion(id) {
+    return {
+      id, expanded: expanded === id,
+      onChange: (e, isExpanded) => setExpanded(isExpanded && id)
+    };
+  }
+
+  useEffect(() => {
+    const page = window.location.hash.slice(1);
+    if (page) setExpanded(page);
+  }, []);
+
   if (info === null) return "";
   return (
     <main>
       <Linear style={{ minHeight: 'calc(100vh - 56px)', padding: 20, gap: 30 }}>
         {info &&
           <div>
-            <Accordion>
+            <Accordion {...accordion("display-name")}>
               <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                Display name
+                <Stack>
+                  <Typography>Display name</Typography>
+                  <Details>
+                    Set your identity
+                  </Details>
+                </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <Stack direction="row" spacing={1}>
@@ -104,9 +131,16 @@ export default function MySchedule() {
                 </Stack>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+            <Accordion {...accordion('theme-color')}>
               <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                Theme color
+                <Stack>
+                  <Typography>
+                    Theme color
+                  </Typography>
+                  <Details>
+                    Customize your theme color!!! Default to <span style={{ background: '#66aaaa', padding: '3px 6px', borderRadius: 5 }}>#66aaaa</span>
+                  </Details>
+                </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <Stack direction="row" spacing={1} sx={{ pb: 1 }}>
@@ -118,10 +152,12 @@ export default function MySchedule() {
                     variant="outlined"
                     helperText="format: #123abc"
                     value={color}
-                    onChange={e => setColor(e.target.value || '#')}
+                    onChange={e => setColor(e.target.value)}
                     error={badColor}
                     InputProps={{
-                      endAdornment: <PaletteIcon color="primary" sx={badColor ? {} : { color }}/>
+                      style: { fontFamily: 'consolas' },
+                      startAdornment: '#',
+                      endAdornment: <PaletteIcon color="primary" sx={badColor ? {} : { color: '#'+color }}/>
                     }}
                     sx={{'.MuiFormHelperText-root': { height: 0, mt: 0 }}}
                   />
@@ -131,7 +167,7 @@ export default function MySchedule() {
                       try {
                         let res = await request("POST", "/api/me", {
                           body: {
-                            theme: color
+                            theme: '#'+color
                           }
                         });
                         if (!res.ok)
@@ -147,9 +183,16 @@ export default function MySchedule() {
                 </Stack>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+            <Accordion {...accordion('default-schedule')}>
               <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                Default schedule
+                <Stack>
+                  <Typography>
+                    Default schedule
+                  </Typography>
+                  <Details>
+                    Set your weekly schedule to reuse over meetings
+                  </Details>
+                </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <EditTimeTable

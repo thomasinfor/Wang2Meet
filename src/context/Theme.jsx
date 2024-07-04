@@ -25,7 +25,6 @@ export default function Theme({ children }) {
       let res = await request('GET', `/api/me`);
       if (res.ok) {
         res = await res.json();
-        console.log(res);
         if (res.theme) {
           setTheme(res.theme);
         } else {
