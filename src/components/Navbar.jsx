@@ -47,7 +47,9 @@ export default function Navbar() {
         </IconButton>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
         </Typography>
-        {user && <Chip sx={{ maxWidth: '150px' }} label={user.displayName} icon={<PermIdentityIcon/>} onClick={() => router.push("/me")}/>}
+        {user && <Chip sx={{ maxWidth: '150px' }} label={
+          <Typography sx={{ fontSize: 'inherit', color: 'primary.contrastText' }}>{user.displayName}</Typography>
+        } icon={<PermIdentityIcon/>} onClick={() => router.push("/me")}/>}
         <IconButton size="large" color="inherit" onClick={() => {
           if (!user) {
             signIn();

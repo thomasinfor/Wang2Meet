@@ -207,6 +207,24 @@ App.get('/:id', wrapper(async (req, res) => {
   }
 }));
 
+App.post('/:id/modify', wrapper({ auth: true }, async (req, res) => {
+  const id = req.params.id;
+  const meet = await model("Meet").findById(id).exec();
+  if (meet) {
+    if (!req.user._id.equals(meet.creator))
+      return res.sendStatus(403);
+    const { title, description } = req.body;
+    if (title)
+      meet.title = title;
+    if (description || description === "")
+      meet.description = description;
+    await meet.save();
+    res.status(200).json(await meet.dump());
+  } else {
+    res.sendStatus(404);
+  }
+}));
+
 App.post('/:id', wrapper({ auth: true }, async (req, res) => {
   const id = req.params.id;
   const meet = await model("Meet").findById(id).exec();

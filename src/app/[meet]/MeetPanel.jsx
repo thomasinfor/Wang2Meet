@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import IconButton from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -28,10 +29,11 @@ const Context = createContext(false);
 export function useConfig() { return useContext(Context); }
 
 export default function MeetPanel({ params, children }) {
-  const { request, addHistory, delHistory } = useAuth();
+  const { request, addHistory, delHistory, user } = useAuth();
   const { message } = useStatus();
   const router = useRouter();
   const [config, setConfig] = useState(null);
+  const isAdmin = config?.creator?.email && (config?.creator?.email === user?.email);
 
   useEffect(() => {
     (async () => {
@@ -124,20 +126,69 @@ export default function MeetPanel({ params, children }) {
             }} defaultExpanded>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon/>}
-                sx={{ "& .MuiAccordionSummary-content:not(.Mui-expanded)" : {
-                  whiteSpace: "nowrap",
-                } }}>
+                sx={{
+                  "& .MuiAccordionSummary-content:not(.Mui-expanded)" : {
+                    whiteSpace: "nowrap",
+                  },
+                  "& *": {
+                    overflowY: 'visible!important'
+                  }
+                }}>
                 <Typography variant="h5" sx={{
                   overflow: "hidden",
                   width: "100%",
                   padding: "0 10px",
                   boxSizing: "border-box",
                   textAlign: "center",
-                }}>{config.title}</Typography>
+                }}>
+                  {isAdmin &&
+                    <IconButton color="primary" onClick={async event => {
+                      if (!isAdmin) return;
+                      event.stopPropagation();
+                      const newTitle = window.prompt(`Original title:\n"${config.title}"\nNew title: (leave empty to cancel change)`);
+                      if (!newTitle) return;
+                      if (window.confirm(`Changing the title from:\n"${config.title}"\nto:\n"${newTitle}"`)) {
+                        let res = await request('POST', `/api/${params.meet}/modify`, {
+                          body: { title: newTitle }
+                        });
+                        if (res.ok) {
+                          setConfig(await res.json());
+                          message("Update successfully", { variant: "success" });
+                        } else {
+                          message("Update failed", { variant: "error" });
+                        }
+                      }
+                    }} sx={{ transform: 'translateY(-3px)' }}>
+                      <EditIcon fontSize="small"/>
+                    </IconButton>}
+                  {config.title}
+                </Typography>
               </AccordionSummary>
               {config.description &&
                 <AccordionDetails sx={{ whiteSpace: "pre-line", display: "flex", justifyContent: "center" }}>
-                  <div>{config.description}</div>
+                  <div>
+                    {isAdmin &&
+                      <IconButton color="primary" onClick={async event => {
+                      if (!isAdmin) return;
+                      event.stopPropagation();
+                      const newDescription = window.prompt(`Original description:\n"${config.description}"\nNew description: (leave empty to cancel change)`);
+                      if (!newDescription) return;
+                      if (window.confirm(`Changing the description from:\n"${config.description}"\nto:\n"${newDescription}"`)) {
+                        let res = await request('POST', `/api/${params.meet}/modify`, {
+                          body: { description: newDescription }
+                        });
+                        if (res.ok) {
+                          setConfig(await res.json());
+                          message("Update successfully", { variant: "success" });
+                        } else {
+                          message("Update failed", { variant: "error" });
+                        }
+                      }
+                    }} sx={{ transform: 'translateY(-2px)' }}>
+                        <EditIcon fontSize="small" sx={{ width: 16, height: 16 }}/>
+                      </IconButton>}
+                    {config.description}
+                  </div>
                 </AccordionDetails>}
             </Accordion>
             {children}
