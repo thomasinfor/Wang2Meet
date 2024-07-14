@@ -1,11 +1,15 @@
 import React from "react";
 import { Roboto_Mono  } from "next/font/google";
+import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import "./global.css";
 import Navbar from '@/components/Navbar';
-import Theme from '@/context/Theme';
 import { AuthContextProvider } from "@/context/Auth";
 import { StatusContextProvider } from "@/context/Status";
+
+const Theme = dynamic(() => import('@/context/Theme'), {
+  ssr: false,
+})
 
 const inter = Roboto_Mono({ subsets: ["latin"] });
 
