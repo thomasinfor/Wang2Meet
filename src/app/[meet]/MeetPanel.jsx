@@ -92,7 +92,7 @@ export default function MeetPanel({ params, children }) {
     <Context.Provider value={{ config, setConfig }}>
       <main>
         {config &&
-          <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0' }}>
+          <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0', justifyContent: 'flex-start' }}>
             <SpeedDial
               direction="down"
               ariaLabel="mode-switch"

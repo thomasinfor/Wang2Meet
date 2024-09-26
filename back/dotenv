@@ -1,1 +1,2 @@
 PORT=8005
+MONGO_CONNECTION_STRING=mongodb://localhost:27017/
