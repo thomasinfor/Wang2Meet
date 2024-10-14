@@ -1,6 +1,7 @@
 "use client"
 import React from "react";
 import { useState, useEffect, useMemo, useCallback, useContext, createContext } from "react";
+import { useTheme } from "@emotion/react";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
 import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration, slotBefore, sum } from "@/utils";
@@ -8,18 +9,26 @@ import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration, slotBe
 const Context = createContext(false);
 
 function Grid({ ...p }) {
-  // const theme = useTheme();
-  const { focus, level, maxPeople, highlightRange: range, ratio } = useContext(Context);
+  const theme = useTheme();
+  const { focus, level, maxPeople, highlightRange: range, ratio, maxRatio, highlightMax } = useContext(Context);
   const focused = focus && p.i == focus[0] && p.j == focus[1];
   const style = { fontSize: '4px' };
-  if (ratio && ratio[p.i][p.j] !== false)
-    Object.assign(style, { background: colorScale('#339900', ratio[p.i][p.j]) });
-  else
+
+  // background
+  if (ratio && ratio[p.i][p.j] !== false) {
+    if (highlightMax && ratio[p.i][p.j] === maxRatio)
+      Object.assign(style, { background: theme.palette.purple.main });
+    else
+      Object.assign(style, { background: colorScale(theme.palette.green.main, ratio[p.i][p.j]) });
+  } else
     Object.assign(style, { background: "gray" });
+  if (range && slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1]))
+      Object.assign(style, { background: '#FFFF00' });
+
+  // border
   if (focused)
     Object.assign(style, { border: '1px solid red' });
-  if (range && slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1]))
-    Object.assign(style, { background: '#FFFF00' });
+
   return (
     <BaseGrid {...p} style={style}>
       <div style={{ transform: 'scale(2.5)' }}>
@@ -32,7 +41,7 @@ function Grid({ ...p }) {
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
-  highlightRange=false, weight=false,
+  highlightRange=false, weight=false, highlightMax=false,
   keepFocus=false, ...props
 }) {
   const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
@@ -71,9 +80,15 @@ export default function ViewTimeTable({
     return tableMap(EMPTY_TABLE, (_, i, j) =>
       allowed[i][j] && sum(Object.entries(v).map(([k, v]) => Number(v.table[i][j]) * w[k])) / sum_w);
   }, [EMPTY_TABLE, value, weight]);
+  const maxRatio = useMemo(() => ratio && ratio.flat().reduce((a, c) => c === false ? a : Math.max(a, c), 0), [ratio]);
 
   return (
-    <Context.Provider value={{ focus, available, level, maxPeople, highlightRange, ratio }}>
+    <Context.Provider value={{
+      focus,
+      highlightRange, highlightMax,
+      ratio, maxRatio,
+      level, maxPeople
+    }}>
       <TimeTable
         enter={enter}
         down={enter}

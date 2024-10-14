@@ -18,12 +18,30 @@ const defaultTheme = (() => {
   }
 })();
 
-function makeTheme(theme) {
-  return createTheme({
+function makeTheme(themeColor) {
+  let theme = createTheme({
     palette: {
       primary: {
-        main: theme,
-      }
+        main: themeColor,
+      },
+    }
+  });
+  return createTheme(theme, {
+    palette: {
+      green: theme.palette.augmentColor({
+        color: {
+          main: '#339900',
+          contrastText: "#000",
+        },
+        name: 'green',
+      }),
+      purple: theme.palette.augmentColor({
+        color: {
+          main: '#9366aa',
+          contrastText: "#000",
+        },
+        name: 'purple',
+      }),
     }
   });
 }

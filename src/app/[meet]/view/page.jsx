@@ -27,6 +27,7 @@ import Switch from '@mui/material/Switch';
 import TuneIcon from '@mui/icons-material/Tune';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
 import { interpret, slotBefore } from "@/utils";
@@ -89,6 +90,7 @@ export default function MeetView() {
     return res;
   }, [SP]);
   const [showHightlight, setShowHightlight] = useState(true);
+  const [highlightMax, setHighlightMax] = useState(true);
 
   const [viewGroup, setViewGroup] = useState(true);
   const [viewFocus, setViewFocus] = useState(null);
@@ -151,6 +153,13 @@ export default function MeetView() {
             color="primary"
             onClick={() => setShowHightlight(s => !s)}
           />}
+        <Chip
+          icon={<ChangeCircleIcon style={{ color: "white" }}/>}
+          label="Max Participants"
+          variant="contained"
+          color={highlightMax ? "purple" : "green"}
+          onClick={() => setHighlightMax(h => !h)}
+        />
       </Stack>
       <Stack direction="row" alignItems="center">
         <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
@@ -206,6 +215,7 @@ export default function MeetView() {
               setFocus={setViewFocus}
               highlightRange={showHightlight && highlight}
               weight={viewGroup === true ? pconfig : false}
+              highlightMax={highlightMax}
             />
           </TableWrapper>
         </SplitViewContainer>
