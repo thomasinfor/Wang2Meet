@@ -1,12 +1,22 @@
 "use client"
 import React, { useMemo } from "react";
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useLocalStorageState } from '@toolpad/core';
+import { useDialogs } from '@toolpad/core/useDialogs';
 import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { useStatus } from "@/context/Status";
 import { STORAGE_KEY } from '@/utils';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import LinkIcon from '@mui/icons-material/Link';
+import CheckIcon from '@mui/icons-material/Check';
+import Typography from "@mui/material/Typography";
+import InAppBrowsersImage from "@assets/in-app-browsers.png";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
@@ -22,8 +32,52 @@ const auth = getAuth(app);
 
 const AuthContext = createContext({ user: null });
 
+function SignInAlert({ open, onClose }) {
+  const [showCopied, setShowCopied] = useState(false);
+
+  useEffect(() => {
+    if (showCopied) {
+      const id = setTimeout(() => setShowCopied(false), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [showCopied, setShowCopied]);
+
+  return (
+    <Dialog fullWidth open={open} onClose={() => onClose(false)}>
+      <DialogTitle>In-App browser warning</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ mb: 1 }}>
+          Please <b>DON&apos;T</b> sign in with in-app browser like Instagram, Facebook or LINE browser. Google Oauth blocks access from insecure browsers.
+        </Typography>
+        <Typography sx={{ mb: 2 }}>
+          On mobile devices, use Chrome or Safari instead.
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
+          請 <b>勿</b> 使用應用程式內建瀏覽器登入，如 IG、FB 或 LINE。Google Oauth 拒絕來自不安全瀏覽器的連線。
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
+          若為行動裝置，請在 Chrome 或 Safari 上登入。
+        </Typography>
+        <Image alt="in-app-browsers.png" src={InAppBrowsersImage} style={{ width: "100%", height: "auto" }}/>
+      </DialogContent>
+      <DialogActions sx={{ px: 2 }}>
+        <Button
+          startIcon={showCopied ? <CheckIcon/> : <LinkIcon/>}
+          onClick={() => {
+            navigator.clipboard.writeText(window.location.origin + "/sign-in");
+            setShowCopied(true);
+          }}
+          sx={{ mr: 'auto' }}
+        >{showCopied ? "Copied" : "Copy link"}</Button>
+        <Button onClick={() => onClose(false)} color="error">Leave</Button>
+        <Button onClick={() => onClose(true)}>Sign me in</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export const AuthContextProvider = ({ children }) => {
-  const { message } = useStatus();
+  const dialogs = useDialogs();
   const [user, setUser] = useState(false);
 
   useEffect(() => {
@@ -33,35 +87,16 @@ export const AuthContextProvider = ({ children }) => {
     return () => { unsubscribe(); };
   }, []);
 
-  const signIn = async () => {
+  const signIn = useCallback(async () => {
     const provider = new GoogleAuthProvider();
-    if (window.confirm(`
-Please **DON'T** sign in with in-app browser like Instagram, Facebook or LINE browser. Google Oauth blocks access from insecure browsers.
-On mobile devices, use Chrome or Safari instead.
-
-請**勿**使用應用程式內建瀏覽器登入，如 IG、FB 或 LINE。Google Oauth 拒絕來自不安全瀏覽器的連線。
-若為行動裝置，請在 Chrome 或 Safari 上登入。
-
-Login link: https://w2m.wang.works/sign-in
-    `.trim())) {
-      // const useragent = navigator.userAgent || navigator.vendor || window.opera;
-      // const isInAppBrowser = /\Wwv\W/.test(useragent);
-      // if (isInAppBrowser) {
-      //     window.alert(
-      //       "Google Sign-In may not work in this in-app browser.\n" +
-      //       "Try opening https://w2m.wang.works in your default browser (e.g., Chrome, Safari)."
-      //     );
-      // }
+    if (await dialogs.open(SignInAlert)) {
       if (process.env.NODE_ENV === 'development')
         await signInWithPopup(auth, provider);
       else
         await signInWithRedirect(auth, provider);
       window.location.reload();
-    } else {
-      navigator.clipboard.writeText(window.location.origin + "/sign-in");
-      message("Sign-in link copied", { variant: "success" });
     }
-  };
+  }, [dialogs]);
 
   const logOut = async () => {
     await signOut(auth);
@@ -126,20 +161,18 @@ Login link: https://w2m.wang.works/sign-in
   }, [setHistory]);
 
   return (
-    <ErrorBoundary>
-      <AuthContext.Provider value={{
-        user,
-        request,
-        signIn,
-        logOut,
-        updateUser,
-        history: history || [],
-        addHistory,
-        delHistory,
+    <AuthContext.Provider value={{
+      user,
+      request,
+      signIn,
+      logOut,
+      updateUser,
+      history: history || [],
+      addHistory,
+      delHistory,
     }}>
-       {children}
-      </AuthContext.Provider>
-    </ErrorBoundary>
+      {children}
+    </AuthContext.Provider>
   );
 };
 

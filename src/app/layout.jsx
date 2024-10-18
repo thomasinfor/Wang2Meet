@@ -4,10 +4,14 @@ import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import "./global.css";
 import Navbar from '@/components/Navbar';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { AuthContextProvider } from "@/context/Auth";
 import { StatusContextProvider } from "@/context/Status";
 
 const Theme = dynamic(() => import('@/context/Theme'), {
+  ssr: false,
+})
+const DefaultTheme = dynamic(() => import('@/context/Theme').then(m => m.DefaultTheme), {
   ssr: false,
 })
 
@@ -34,14 +38,18 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.webmanifest"/>
       </head>
       <body className={inter.className} style={{ margin: 0 }}>
-        <StatusContextProvider>
-          <AuthContextProvider>
-            <Theme>
-              <Navbar/>
-              {children}
-            </Theme>
-          </AuthContextProvider>
-        </StatusContextProvider>
+        <DefaultTheme>
+          <ErrorBoundary>
+            <StatusContextProvider>
+              <AuthContextProvider>
+                <Theme>
+                  <Navbar/>
+                  {children}
+                </Theme>
+              </AuthContextProvider>
+            </StatusContextProvider>
+          </ErrorBoundary>
+        </DefaultTheme>
       </body>
     </html>
   );

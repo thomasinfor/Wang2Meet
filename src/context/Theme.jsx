@@ -36,6 +36,14 @@ function makeTheme(themeColor) {
   });
 }
 
+export function DefaultTheme({ children }) {
+  return (
+    <ThemeProvider theme={makeTheme(defaultTheme)}>
+      {children}
+    </ThemeProvider>
+  );
+}
+
 export default function Theme({ children }) {
   const { request, user } = useAuth();
   const [localTheme, setLocalTheme] = useLocalStorageState(STORAGE_KEY`theme`, defaultTheme, {

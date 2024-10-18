@@ -1,10 +1,19 @@
 "use client"
 import React from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useDialogs } from "@toolpad/core";
 import styled from "@emotion/styled";
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -15,6 +24,8 @@ import { dump, parse, interpret, defaultTime, defaultDate, tableMap, cast } from
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 import { useConfig } from "../MeetPanel";
+import ClearScheduleImage from "@assets/clear-schedule.png";
+import PasteScheduleImage from "@assets/paste-schedule.png";
 
 const Tables = styled.div`
   display: flex;
@@ -52,6 +63,7 @@ const TableWrapper = styled.div`
 `;
 
 export default function MeetEdit({ params }) {
+  const dialogs = useDialogs();
   const { config, setConfig } = useConfig();
   const { user, request, signIn } = useAuth();
   const { message } = useStatus();
@@ -100,7 +112,20 @@ export default function MeetEdit({ params }) {
           await sync(await update(tableMap(table, (e, i, j) => e || t[i][j])));
           message("Schedule pasted", { variant: "success" });
         } else {
-          if (window.confirm("Default schedule not set.\nProceed to make your default schedule?")) {
+          if (await dialogs.open(props => (
+            <Dialog fullWidth open={props.open} onClose={() => props.onClose(false)}>
+              <DialogTitle>Default schedule not set.</DialogTitle>
+              <DialogContent>
+                <Typography>
+                  Set your default weekly schedule now?
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => props.onClose(false)} color="error">Later</Button>
+                <Button onClick={() => props.onClose(true)}>Go!</Button>
+              </DialogActions>
+            </Dialog>
+          ))) {
             window.open("/me#default-schedule");
           } else {
             message("Default schedule not set", { variant: "error" });
@@ -113,7 +138,7 @@ export default function MeetEdit({ params }) {
       console.error(e);
       window.alert("Operation failed");
     }
-  }, [user, table, config, update, request, sync, message]);
+  }, [user, table, config, update, request, sync, message, dialogs]);
 
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
@@ -151,7 +176,24 @@ export default function MeetEdit({ params }) {
             variant="contained"
             color="primary"
             onClick={async () => {
-              if (window.confirm("Confirm to paste default schedule?")) {
+              if (await dialogs.open(props => (
+                <Dialog fullWidth open={props.open} onClose={() => props.onClose(false)}>
+                  <DialogTitle>Confirm pasting default schedule?</DialogTitle>
+                  <DialogContent>
+                    <Typography sx={{ mb: 1 }}>
+                      This operation applies your <Link href="/me#default-schedule" target="_blank">default weekly schedule</Link> to current event.
+                    </Typography>
+                    <Typography sx={{ mb: 1 }}>
+                      Time slots that are already marked available will remain available.
+                    </Typography>
+                    <Image alt="paste-schedule.png" src={PasteScheduleImage} style={{ width: "100%", height: "auto" }}/>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => props.onClose(false)} color="error">No</Button>
+                    <Button onClick={() => props.onClose(true)}>Yes</Button>
+                  </DialogActions>
+                </Dialog>
+              ))) {
                 await pasteSchedule();
               }
             }}
@@ -163,7 +205,21 @@ export default function MeetEdit({ params }) {
             variant="contained"
             color="primary"
             onClick={async () => {
-              if (window.confirm("Confirm to clear schedule?")) {
+              if (await dialogs.open(props => (
+                <Dialog fullWidth open={props.open} onClose={() => props.onClose(false)}>
+                  <DialogTitle>Confirm clearing the schedule?</DialogTitle>
+                  <DialogContent>
+                    <Typography sx={{ mb: 1 }}>
+                      After this operation, all time slots will be marked unavailable.
+                    </Typography>
+                    <Image alt="clear-schedule.png" src={ClearScheduleImage} style={{ width: "100%", height: "auto" }}/>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => props.onClose(false)} color="error">No</Button>
+                    <Button onClick={() => props.onClose(true)}>Yes</Button>
+                  </DialogActions>
+                </Dialog>
+              ))) {
                 await sync(await update(tableMap(table, () => false)));
                 message("Schedule cleared", { variant: "success" });
               }

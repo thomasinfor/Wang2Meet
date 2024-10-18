@@ -2,6 +2,7 @@
 import React from "react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from 'next/navigation';
+import { useDialogs } from "@toolpad/core";
 import TextField from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
@@ -13,6 +14,9 @@ import Accordion from '@mui/material/Accordion';
 import Typography from '@mui/material/Typography';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PaletteIcon from '@mui/icons-material/Palette';
 import { dump, parse } from "@/utils";
@@ -29,6 +33,7 @@ function Details({ children }) {
 
 export default function Me() {
   const router = useRouter();
+  const dialogs = useDialogs();
   const { message } = useStatus();
   const { user, request, updateUser, logOut } = useAuth();
   const [info, setInfo] = useState(null);
@@ -211,8 +216,16 @@ export default function Me() {
           label="Log out"
           variant="contained"
           color="primary"
-          onClick={() => {
-            if (window.confirm("Confirm to log out?")) {
+          onClick={async () => {
+            if (await dialogs.open(props => (
+              <Dialog fullWidth open={props.open} onClose={() => props.onClose(false)}>
+                <DialogTitle>Confirm logging out?</DialogTitle>
+                <DialogActions>
+                  <Button onClick={() => props.onClose(false)} color="error">No</Button>
+                  <Button onClick={() => props.onClose(true)}>Yes</Button>
+                </DialogActions>
+              </Dialog>
+            ))) {
               logOut();
               message("Logged out", { variant: "success" });
               router.push("/");

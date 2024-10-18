@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 import { useState, useCallback, useMemo } from "react";
-import Image from 'next/image'
+import Image from 'next/image';
 import styled from "@emotion/styled";
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';

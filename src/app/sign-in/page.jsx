@@ -3,7 +3,8 @@ import React from "react";
 import { useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/Auth";
-import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import GoogleIcon from '@mui/icons-material/Google';
 import Linear from "@/components/Linear";
 
 export default function SignInPage() {
@@ -22,7 +23,13 @@ export default function SignInPage() {
   return (
     <main>
       <Linear style={{ minHeight: 'calc(100vh - 56px)' }}>
-        <CircularProgress size={25}/>
+        <Chip
+          icon={<GoogleIcon/>}
+          label="Sign in with Google account"
+          variant="contained"
+          color="primary"
+          onClick={signIn}
+        />
       </Linear>
     </main>
   );
