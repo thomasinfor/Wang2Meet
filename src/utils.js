@@ -1,3 +1,4 @@
+export function STORAGE_KEY(x) { return "Wang2Meet_" + x; }
 export function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
 export function pad(n, digit){ const res = `${n}`; return "0".repeat(Math.max(0, digit-res.length)) + res; }
 export class Time{

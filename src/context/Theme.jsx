@@ -2,21 +2,11 @@
 import React from "react";
 import { useState, useEffect, useCallback } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useLocalStorageState } from '@toolpad/core';
 import { useAuth } from "@/context/Auth";
+import { STORAGE_KEY } from '@/utils';
 
-const STORAGE_KEY = 'Wang2Meet_theme';
-const defaultColor = '#66aaaa';
-const defaultTheme = (() => {
-  try {
-    const theme = window.localStorage.getItem(STORAGE_KEY);
-    if (theme && /^#[\da-f]{6}$/.test(theme))
-      return theme;
-    return defaultColor;
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return defaultColor;
-  }
-})();
+const defaultTheme = '#66aaaa';
 
 function makeTheme(themeColor) {
   let theme = createTheme({
@@ -48,13 +38,21 @@ function makeTheme(themeColor) {
 
 export default function Theme({ children }) {
   const { request, user } = useAuth();
-  const [theme, _setTheme] = useState(defaultTheme);
-  const setTheme = useCallback(t => {
-    _setTheme(t);
-    if (window.localStorage) {
-      window.localStorage.setItem("Wang2Meet_theme", t);
+  const [localTheme, setLocalTheme] = useLocalStorageState(STORAGE_KEY`theme`, defaultTheme, {
+    codec: {
+      parse: theme => theme && /^#[\da-f]{6}$/.test(theme) ? theme : null,
+      stringify: theme => theme
     }
-  }, [_setTheme]);
+  });
+  const [theme, _setTheme] = useState(defaultTheme);
+  useEffect(() => {
+    if (localTheme) _setTheme(localTheme)
+  }, [localTheme, _setTheme]);
+  const setTheme = useCallback(theme => {
+    setLocalTheme(theme);
+    _setTheme(theme);
+   }, [setLocalTheme, _setTheme]);
+
   const [loaded, setLoaded] = useState(Boolean(window?.localStorage));
 
   useEffect(() => {

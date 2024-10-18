@@ -1,10 +1,12 @@
 "use client"
-import React from "react";
+import React, { useMemo } from "react";
 import { useContext, createContext, useState, useEffect, useCallback } from 'react';
+import { useLocalStorageState } from '@toolpad/core';
 import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useStatus } from "@/context/Status";
+import { STORAGE_KEY } from '@/utils';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
@@ -19,7 +21,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const AuthContext = createContext({ user: null });
-function STORAGE_KEY(x) { return "Wang2Meet_" + x; }
 
 export const AuthContextProvider = ({ children }) => {
   const { message } = useStatus();
@@ -102,23 +103,23 @@ Login link: https://w2m.wang.works/sign-in
     return res;
   }
 
-  const [history, setHistory] = useState(null);
-  useEffect(() => {
-    try {
-      setHistory(JSON.parse(window.localStorage.getItem(STORAGE_KEY`history`)) || []);
-    } catch(e) {
-      console.error(e);
-      window.localStorage.removeItem(STORAGE_KEY`history`);
-      setHistory([]);
+
+  const [_history, setHistory] = useLocalStorageState(STORAGE_KEY`history`, null, {
+    codec: {
+      parse: v => {
+        try {
+          return JSON.parse(v);
+        } catch(e) {
+          console.log(e);
+          return [];
+        }
+      },
+      stringify: v => JSON.stringify(v)
     }
-  }, [setHistory]);
-  useEffect(() => {
-    if (history !== null){
-      window.localStorage.setItem(STORAGE_KEY`history`, JSON.stringify(history));
-    }
-  }, [history]);
+  });
+  const history = useMemo(() => _history || [], [_history]);
   const addHistory = useCallback(config => {
-    setHistory(h => [].concat([{ ...config, collection: undefined }], h.filter(e => e.id !== config.id)).slice(0, 10));
+    setHistory(h => [].concat([{ ...config, collection: undefined }], h.filter(e => e.id !== config.id)).slice(0, 100));
   }, [setHistory]);
   const delHistory = useCallback(id => {
     setHistory(h => h.filter(e => e.id !== id));

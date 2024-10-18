@@ -187,7 +187,7 @@ export default function Me() {
               <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                 <Stack>
                   <Typography>
-                    Default schedule
+                    Default weekly schedule
                   </Typography>
                   <Details>
                     Set your weekly schedule to reuse over meetings
