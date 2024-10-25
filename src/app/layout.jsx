@@ -1,5 +1,5 @@
 import React from "react";
-import { Roboto_Mono  } from "next/font/google";
+import { Inter  } from "next/font/google";
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import "./global.css";
@@ -15,7 +15,7 @@ const DefaultTheme = dynamic(() => import('@/context/Theme').then(m => m.Default
   ssr: false,
 })
 
-const inter = Roboto_Mono({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Wang2Meet",

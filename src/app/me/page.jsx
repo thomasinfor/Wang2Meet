@@ -17,6 +17,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
+import Alert from '@mui/material/Alert';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PaletteIcon from '@mui/icons-material/Palette';
 import { dump, parse } from "@/utils";
@@ -35,13 +36,14 @@ export default function Me() {
   const router = useRouter();
   const dialogs = useDialogs();
   const { message } = useStatus();
-  const { user, request, updateUser, logOut } = useAuth();
+  const { user, request, updateUser, logOut, sendFCMToken } = useAuth();
   const [info, setInfo] = useState(null);
   const [table, setTable] = useState(null);
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const badColor = useMemo(() => !/^[\da-f]{6}$/.test(color), [color]);
   const [expanded, setExpanded] = useState(false);
+  const [notiPerm, setNotiPerm] = useState(window.Notification?.permission);
 
   useEffect(() => {
     if (user) (async () => {
@@ -159,10 +161,12 @@ export default function Me() {
                     value={color}
                     onChange={e => setColor(e.target.value)}
                     error={badColor}
-                    InputProps={{
-                      style: { fontFamily: 'consolas' },
-                      startAdornment: '#',
-                      endAdornment: <PaletteIcon color="primary" sx={badColor ? {} : { color: '#'+color }}/>
+                    slotProps={{
+                      input: {
+                        style: { fontFamily: 'consolas' },
+                        startAdornment: '#',
+                        endAdornment: <PaletteIcon color="primary" sx={badColor ? {} : { color: '#'+color }}/>
+                      }
                     }}
                     sx={{'.MuiFormHelperText-root': { height: 0, mt: 0 }}}
                   />
@@ -208,6 +212,52 @@ export default function Me() {
                   bufferTime={1}
                   alarm={sync}
                 />
+              </AccordionDetails>
+            </Accordion>
+            <Accordion {...accordion("notification")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                <Stack>
+                  <Typography>Notification</Typography>
+                  <Details>
+                    Enable website notification to receive participant updates
+                  </Details>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={1}>
+                  {notiPerm === "granted" ? (
+                    <>
+                      <Alert severity="success">Notfication is enabled</Alert>
+                      <Button
+                        variant="outlined"
+                        onClick={async () => {
+                          new Notification("Hi there!", {
+                            badge: "/icon512_maskable.png",
+                            body: "This is a testing notification from Wang2Meet",
+                            icon: "/icon512_maskable.png",
+                            requireInteraction: true,
+                          });
+                        }}
+                      >Test notification</Button>
+                    </>
+                  ) : (
+                    <>
+                      <Alert severity="error">Notfication is disabled</Alert>
+                      <Button
+                        variant="contained"
+                        onClick={async () => {
+                          const permission = await Notification.requestPermission();
+                          if (permission === "granted") {
+                            await sendFCMToken();
+                          } else {
+                            await dialogs.alert("Notification is disabled. Please manually enable in site setting.");
+                          }
+                          setNotiPerm(permission);
+                      }}
+                      >Enable notification</Button>
+                    </>
+                  )}
+                </Stack>
               </AccordionDetails>
             </Accordion>
           </div>}

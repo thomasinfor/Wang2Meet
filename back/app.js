@@ -21,6 +21,7 @@ const userSchema = new Schema({
   name: { type: String, required: true, validate: { validator: e => e.length > 0 } },
   table: String,
   theme: { type: String, validate: { validator: e => /#[\da-f]{6}/.test(e) } },
+  FCMToken: { type: Map, of: Date, default: {}, required: true },
 }, {
   methods: {
     async sync(user) {
@@ -55,6 +56,7 @@ const meetSchema = new Schema({
       table: { type: String, required: true },
     }],
     default: [],
+    required: true,
   },
 }, {
   optimisticConcurrency: true,
@@ -186,12 +188,15 @@ App.get('/me', wrapper({ auth: true }, async (req, res) => {
 }));
 
 App.post('/me', wrapper({ auth: true }, async (req, res) => {
-  let { table, theme } = req.body;
+  let { table, theme, FCMToken } = req.body;
   if (table && checkTable(String(table))) {
     req.user.table = String(table);
   }
   if (theme) {
     req.user.theme = theme;
+  }
+  if (FCMToken) {
+    req.user.FCMToken.set(FCMToken, new Date);
   }
   await req.user.save();
   res.status(200).json(req.user);

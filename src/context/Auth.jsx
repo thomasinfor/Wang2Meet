@@ -1,7 +1,8 @@
 "use client"
-import React, { useMemo } from "react";
-import { useContext, createContext, useState, useEffect, useCallback } from 'react';
+import React from "react";
+import { useMemo, useContext, createContext, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import dynamic from "next/dynamic";
 import { useLocalStorageState } from '@toolpad/core';
 import { useDialogs } from '@toolpad/core/useDialogs';
 import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
@@ -17,6 +18,8 @@ import CheckIcon from '@mui/icons-material/Check';
 import Typography from "@mui/material/Typography";
 import InAppBrowsersImage from "@assets/in-app-browsers.png";
 
+const getMessaging = dynamic(() => import("firebase/messaging").then(m => m.getMessaging), { ssr: false });
+const getToken = dynamic(() => import("firebase/messaging").then(m => m.getToken), { ssr: false });
 
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
@@ -27,8 +30,10 @@ const firebaseConfig = {
   appId: "1:344365803313:web:d7741bb61260898ef37210",
   measurementId: "G-0P4MSW3QPS"
 };
+const vapidKey = "BEp8Kz7HnEAnOruo3SEBcYJ50ziygXvI8A2eeHXxlW-P60PEx9kK9WCUfr7MSsLBXczx37fj8YSvOBBq87oombI";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const messaging = getMessaging(app);
 
 const AuthContext = createContext({ user: null });
 
@@ -138,6 +143,18 @@ export const AuthContextProvider = ({ children }) => {
     return res;
   }
 
+  const sendFCMToken = async () => {
+    const token = await getToken(messaging, { vapidKey });
+    // const token = "TOKEN";
+    console.log("Token generated : ", token);
+    const res = await request("POST", "/api/me", {
+      body: { FCMToken: token }
+    });
+    if (!res.ok) {
+      window.alert("Request Failed.");
+    }
+  }
+
 
   const [_history, setHistory] = useLocalStorageState(STORAGE_KEY`history`, null, {
     codec: {
@@ -167,6 +184,7 @@ export const AuthContextProvider = ({ children }) => {
       signIn,
       logOut,
       updateUser,
+      sendFCMToken,
       history: history || [],
       addHistory,
       delHistory,
