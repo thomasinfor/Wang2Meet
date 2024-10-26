@@ -2,7 +2,6 @@
 import React from "react";
 import { useMemo, useContext, createContext, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import dynamic from "next/dynamic";
 import { useLocalStorageState } from '@toolpad/core';
 import { useDialogs } from '@toolpad/core/useDialogs';
 import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
@@ -18,9 +17,6 @@ import CheckIcon from '@mui/icons-material/Check';
 import Typography from "@mui/material/Typography";
 import InAppBrowsersImage from "@assets/in-app-browsers.png";
 
-const getMessaging = dynamic(() => import("firebase/messaging").then(m => m.getMessaging), { ssr: false });
-const getToken = dynamic(() => import("firebase/messaging").then(m => m.getToken), { ssr: false });
-
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
   authDomain: process.env.NODE_ENV === 'development' ? "when2meet-11dfe.firebaseapp.com" : "w2m.wang.works",
@@ -33,7 +29,6 @@ const firebaseConfig = {
 const vapidKey = "BEp8Kz7HnEAnOruo3SEBcYJ50ziygXvI8A2eeHXxlW-P60PEx9kK9WCUfr7MSsLBXczx37fj8YSvOBBq87oombI";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const messaging = getMessaging(app);
 
 const AuthContext = createContext({ user: null });
 
@@ -144,6 +139,8 @@ export const AuthContextProvider = ({ children }) => {
   }
 
   const sendFCMToken = async () => {
+    const { getMessaging, getToken } = await import("firebase/messaging");
+    const messaging = getMessaging(app);
     const token = await getToken(messaging, { vapidKey });
     // const token = "TOKEN";
     console.log("Token generated : ", token);

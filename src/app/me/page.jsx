@@ -231,18 +231,19 @@ export default function Me() {
                       <Button
                         variant="outlined"
                         onClick={async () => {
-                          new Notification("Hi there!", {
-                            badge: "/icon512_maskable.png",
+                          const [registration] = await navigator.serviceWorker.getRegistrations();
+                          registration.showNotification("Hi there!", {
                             body: "This is a testing notification from Wang2Meet",
-                            icon: "/icon512_maskable.png",
+                            icon: "https://w2m.wang.works/icon512_maskable.png",
                             requireInteraction: true,
                           });
+                          message("Notification sent", { variant: "info" });
                         }}
                       >Test notification</Button>
                     </>
                   ) : (
                     <>
-                      <Alert severity="error">Notfication is disabled</Alert>
+                      {notiPerm === "denied" && <Alert severity="error">Notfication is disabled</Alert>}
                       <Button
                         variant="contained"
                         onClick={async () => {
