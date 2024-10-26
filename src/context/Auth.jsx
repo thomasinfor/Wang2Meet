@@ -168,11 +168,11 @@ export const AuthContextProvider = ({ children }) => {
   });
   const history = useMemo(() => _history || [], [_history]);
   const addHistory = useCallback(config => {
-    setHistory(h => [].concat([{ ...config, collection: undefined }], h.filter(e => e.id !== config.id)).slice(0, 100));
-  }, [setHistory]);
+    setHistory([].concat([{ ...config, collection: undefined }], history.filter(e => e.id !== config.id)).slice(0, 100));
+  }, [setHistory, history]);
   const delHistory = useCallback(id => {
-    setHistory(h => h.filter(e => e.id !== id));
-  }, [setHistory]);
+    setHistory(history.filter(e => e.id !== id));
+  }, [setHistory, history]);
 
   return (
     <AuthContext.Provider value={{
