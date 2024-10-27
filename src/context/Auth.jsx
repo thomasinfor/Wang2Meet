@@ -45,7 +45,7 @@ function SignInAlert({ open, onClose }) {
   return (
     <Dialog fullWidth open={open} onClose={() => onClose(false)}>
       <DialogTitle>In-App browser warning</DialogTitle>
-      <DialogContent>
+      <DialogContent dividers>
         <Typography sx={{ mb: 1 }}>
           Please <b>DON&apos;T</b> sign in with in-app browser like Instagram, Facebook or LINE browser. Google Oauth blocks access from insecure browsers.
         </Typography>
@@ -70,7 +70,7 @@ function SignInAlert({ open, onClose }) {
           sx={{ mr: 'auto' }}
         >{showCopied ? "Copied" : "Copy link"}</Button>
         <Button onClick={() => onClose(false)} color="error">Leave</Button>
-        <Button onClick={() => onClose(true)}>Sign me in</Button>
+        <Button onClick={() => onClose(true)} variant="contained">Sign me in</Button>
       </DialogActions>
     </Dialog>
   );
