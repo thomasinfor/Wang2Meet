@@ -2,14 +2,19 @@
 import React from "react";
 import { useState, useEffect, useMemo } from "react";
 import styled from "@emotion/styled";
+import { Roboto_Mono } from "next/font/google";
 import { Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
+
+const roboto_mono = Roboto_Mono({ subsets: ["latin"] });
 
 const Table = styled.table`
   border-spacing: 0;
   user-select: none;
   text-align: center;
+  table-layout: fixed;
   & td {
     width: 50px;
+    min-width: 45px;
     height: 10px;
     box-sizing: border-box;
   }
@@ -98,7 +103,7 @@ export default function TimeTable({
   }, [enter, up, randomID]);
 
   return (
-    <Container {...props}>
+    <Container {...props} className={roboto_mono.className}>
       <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
         <tbody>
           <tr>

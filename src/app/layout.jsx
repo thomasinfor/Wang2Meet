@@ -1,5 +1,5 @@
 import React from "react";
-import { Inter  } from "next/font/google";
+import { Inter } from "next/font/google";
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import "./global.css";
