@@ -75,7 +75,7 @@ const meetSchema = new Schema({
         date: [date.getFullYear(), date.getMonth()+1, date.getDate()],
         duration: this.duration,
         title: this.title,
-        collection: Object.fromEntries(this.tables.map(e => [
+        collection: Object.fromEntries((this.tables || []).map(e => [
           e.user.email, { name: e.user.name, table: e.table }
         ])),
       };

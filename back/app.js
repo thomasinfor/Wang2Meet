@@ -90,7 +90,8 @@ App.post('/me', wrapper({ auth: true }, async (req, res) => {
 
 App.get('/:id', wrapper(async (req, res) => {
   const id = req.params.id;
-  const meet = await Meet.findById(id).exec();
+  const projection = ("metadata" in req.query) ? "-tables" : "";
+  const meet = await Meet.findById(id, projection).exec();
   if (meet) {
     res.status(200).json(await meet.dump());
   } else {

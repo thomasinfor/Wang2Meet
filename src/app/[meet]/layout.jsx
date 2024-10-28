@@ -4,7 +4,7 @@ import React from "react";
 import MeetPanel from "./MeetPanel";
 
 export async function generateMetadata({ params }) {
-  let res = await fetch(`${process.env.API_PATH}/${params.meet}`);
+  let res = await fetch(`${process.env.API_PATH}/${params.meet}?metadata`, { cache: "no-cache" });
   if (res.ok) {
     res = await res.json();
     return { title: `${res.title} | Wang2Meet` };
