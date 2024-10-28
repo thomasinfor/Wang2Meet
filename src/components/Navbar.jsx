@@ -40,8 +40,13 @@ export default function Navbar() {
           <HomeIcon />
         </IconButton>
         <IconButton size="large" color="inherit" onClick={() => {
-          navigator.clipboard.writeText(window.location.href);
-          message("Copied link to clipboard!", { variant: "success" });
+          const shareData = { title: "Wang2Meet", url: window.location.href };
+          if (navigator.canShare?.(shareData)) {
+            navigator.share(shareData);
+          } else {
+            navigator.clipboard.writeText(shareData.url);
+            message("Copied link to clipboard!", { variant: "success" });
+          }
         }}>
           <ShareIcon />
         </IconButton>

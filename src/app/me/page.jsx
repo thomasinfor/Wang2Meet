@@ -231,6 +231,7 @@ export default function Me() {
                       <Button
                         variant="outlined"
                         onClick={async () => {
+                          await sendFCMToken();
                           const [registration] = await navigator.serviceWorker.getRegistrations();
                           registration.showNotification("Hi there!", {
                             body: "This is a testing notification from Wang2Meet",
