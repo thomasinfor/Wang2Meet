@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { randomUUID } = require('crypto');
+const Moment = require('moment-timezone');
 const { Schema, model, connect, Error } = require('mongoose');
 
 const isInt = e => parseInt(e) === e;
@@ -29,10 +30,8 @@ const meetSchema = new Schema({
     ref: "User",
   },
   date: { type: Date, required: true },
-  time: { type: [Number], required: true, validate: {
-    validator: e => e.length === 2 && e.every(isInt) && 0 <= e[0] && e[0] <= e[1] && e[1] <= 96
-  } },
-  duration: { type: Number, required: true, validate: { validator: e => isInt(e) && e >= 1 && e <= 35 } },
+  timeDuration: { type: Number, required: true, validate: { validator: e => isInt(e) && 0 < e && e <= 24 } },
+  dateDuration: { type: Number, required: true, validate: { validator: e => isInt(e) && 1 <= e && e <= 35 } },
   title: { type: String, required: true, validate: { validator: e => e.length > 0 } },
   description: String,
   tables: {
@@ -55,7 +54,9 @@ const meetSchema = new Schema({
         o = {
           ...o,
           _id: undefined,
-          date: new Date(`${o.date[0]}-${o.date[1]}-${o.date[2]}`),
+          date: new Date(Moment.tz(`${o.date[0]}-${o.date[1]}-${o.date[2]} ${o.time[0].toString().padStart(2, "0")}`, o.timezone)),
+          timeDuration: o.time[1] - o.time[0],
+          dateDuration: o.duration,
           tables: [],
         };
         return new model("Meet")(o);
@@ -68,12 +69,11 @@ const meetSchema = new Schema({
   methods: {
     async dump() {
       await this.populate('creator tables.user');
-      const date = new Date(this.date);
       const res = {
         id: this._id,
-        time: this.time,
-        date: [date.getFullYear(), date.getMonth()+1, date.getDate()],
-        duration: this.duration,
+        date: this.date,
+        timeDuration: this.timeDuration,
+        dateDuration: this.dateDuration,
         title: this.title,
         collection: Object.fromEntries((this.tables || []).map(e => [
           e.user.email, { name: e.user.name, table: e.table }
@@ -87,7 +87,7 @@ const meetSchema = new Schema({
     },
     async set(user, table, save=false) {
       table = String(table);
-      if (!checkTable(table, this.time[1] - this.time[0], this.duration))
+      if (!checkTable(table, this.timeDuration * 4, this.dateDuration))
         return false;
       for (let i = 0; i < this.tables.length; i++) {
         if (this.tables[i].user.equals(user._id)) {

@@ -80,3 +80,5 @@ export function getCalendarLink(meet, start, end) {
 }
 export function slotBefore(a, b) { return a[1] === b[1] ? a[0] <= b[0] : a[1] <= b[1]; }
 export function sum(x) { return x.reduce((a, b) => a + b, 0); }
+export const timezones = Intl.supportedValuesOf('timeZone');
+export function getTimezoneHere() { return Intl.DateTimeFormat().resolvedOptions().timeZone; }

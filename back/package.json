@@ -16,6 +16,7 @@
     "express": "^4.18.2",
     "firebase-admin": "^12.0.0",
     "fs": "^0.0.1-security",
+    "moment-timezone": "^0.5.46",
     "mongoose": "^8.2.0",
     "uuid": "^9.0.1"
   }

@@ -17,6 +17,7 @@ import Link from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Autocomplete from '@mui/material/Autocomplete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -24,7 +25,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
 import Linear from "@/components/Linear";
 import { useAuth } from "@/context/Auth";
-import { interpret } from "@/utils";
+import { timezones, getTimezoneHere, interpret } from "@/utils";
 import { useStatus } from "@/context/Status";
 
 const Group = styled.div`
@@ -46,16 +47,19 @@ export default function Home() {
   const [start, setStart] = useState(new Date().toLocaleDateString('en-CA'));
   const [end, setEnd] = useState(new Date().toLocaleDateString('en-CA'));
   const [time, setTime] = useState([9, 22]);
+  const [timezone, setTimezone] = useState(getTimezoneHere());
+  const [inputTimezone, setInputTimezone] = useState("");
   const duration = useMemo(() => (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1, [start, end]);
 
   async function confirm() {
     console.log(title, start, end, time);
     let res = await request('POST', `/api/create-event`, {
       body: {
-        time: time.map(e => e * 4),
+        time,
         date: start.split('-').map(e => parseInt(e)),
         duration,
         title,
+        timezone,
         description: description || undefined
       }
     });
@@ -149,6 +153,27 @@ export default function Home() {
                     onChange={(e, v) => setTime(v)}
                   />
                 </Group>
+                <Autocomplete
+                  disablePortal
+                  autoComplete
+                  disableClearable
+                  options={timezones}
+                  required
+                  size="small"
+                  fullWidth
+                  value={timezone}
+                  onChange={(evt, newValue) => setTimezone(newValue)}
+                  inputValue={inputTimezone}
+                  onInputChange={(evt, newValue) => setInputTimezone(newValue)}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label="Timezone"
+                      variant="outlined"
+                      sx={{ fontFamily: "consolas" }}
+                    />
+                  )}
+                />
                 <Button
                   variant="contained"
                   onClick={confirm}
@@ -165,7 +190,7 @@ export default function Home() {
           </Accordion>
           <Accordion {...accordionControl("recently_accessed")}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-              Recently accessed
+              Recent events
             </AccordionSummary>
             <AccordionDetails>
               <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, pt: 0, pb: 0, borderRadius: 1.5 }}>
