@@ -81,6 +81,7 @@ export default function MeetView() {
   const { config } = useConfig();
   const SP = useSearchParams();
   const highlight = useMemo(() => {
+    return false;
     let lst = (SP.get("range") || "").split(",").map(e => parseInt(e));
     if (lst.length !== 4 || lst.some(e => isNaN(e) || e < 0 || e >= 96))
       return false;

@@ -79,9 +79,9 @@ export default function MeetEdit({ params }) {
   }, [setTable, user, setConfig]);
 
   const sync = useCallback(async (t) => {
-    const time = dump(t || table);
+    const time = dump(unwrapTable(t || table));
     let res = await request('POST', `/api/${params.meet}`, {
-      body: { time: unwrapTable(time) }
+      body: { time }
     });
     if (!res.ok) {
       return false;

@@ -17,7 +17,7 @@ export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.
   e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
 ).join(''); }
 export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e, i, j))); }
-export function mkTable(r, c, f) { return new Array(r).fill(0).map(() => new Array(c).fill(f)); }
+export function mkTable(r, c, f=null) { return new Array(r).fill(0).map(() => new Array(c).fill(f)); }
 class InterpretedTime {
   constructor(date, time, [i, j]=[0, 0]) {
     this.primitive = [date, time];
@@ -83,42 +83,61 @@ export function slotBefore(a, b) { return a[1] === b[1] ? a[0] <= b[0] : a[1] <=
 export function sum(x) { return x.reduce((a, b) => a + b, 0); }
 export const timezones = Intl.supportedValuesOf('timeZone');
 export function getTimezoneHere() { return Intl.DateTimeFormat().resolvedOptions().timeZone; }
+class TimeAdapter {
+  constructor(date, dateDuration, timeDuration, timezone) {
+    const localTimeStr = new Date(date).toLocaleString("en-US", { hour12: false, timeZone: timezone });
+    const matches = localTimeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+)/);
+    const [m, d, y, h] = matches.slice(1).map(e => parseInt(e));
+
+    this.dD = dateDuration;
+    this.tD = timeDuration;
+    this.m = m;
+    this.d = d;
+    this.y = y;
+    this.h = h;
+    this.wrap = h + timeDuration > 24;
+    this.mask = !this.wrap ? null : tableMap(mkTable(96, this.getDuration()), (_, i, j) => {
+      const [_i, _j] = this.idx_tablize(i, j);
+      return !(0 <= _j && _j < this.dD && 0 <= _i && _i < this.tD * 4);
+    });
+  }
+  getDate() { return [this.y, this.m, this.d]; }
+  getTime() { return (this.wrap ? [0, 24] : [this.h, this.h + this.tD]).map(e => e * 4); }
+  getDuration() { return this.wrap ? this.dD + 1 : this.dD; }
+  idx_tablize(i, j) { return !this.wrap ? [i, j] : [
+    i - this.h * 4 + (i < this.h * 4 ? 96 : 0),
+    i < this.h * 4 ? j-1 : j
+  ]; }
+  idx_localize(i, j) { return !this.wrap ? [i, j] : [
+    i + this.h * 4 - (i + this.h * 4 >= 96 ? 96 : 0),
+    i + this.h * 4 >= 96 ? j+1 : j
+  ]; }
+  getMask() { return this.mask; }
+  tbl_localize(tbl) { return !this.wrap ? tbl : tableMap(this.getMask(), (m, i, j) =>
+    !m && tbl[this.idx_tablize(i, j)[0]][this.idx_tablize(i, j)[1]]
+  ); }
+  tbl_tablize(tbl) { return !this.wrap ? tbl : tableMap(mkTable(this.tD * 4, this.dD), (_, i, j) =>
+    tbl[this.idx_localize(i, j)[0]][this.idx_localize(i, j)[1]]
+  ); }
+
+}
 export function wrapConfig(cfg, tz) {
   cfg = { ...cfg };
   // console.log(cfg, tz);
-  const localTimeStr = new Date(cfg.date).toLocaleString("en-US", { hour12: false, timeZone: tz });
-  const matches = localTimeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+)/);
-  const [m, d, y, h] = matches.slice(1).map(e => parseInt(e));
-  // console.log(localTimeStr, m, d, y, h);
-  // cfg.date
-  cfg.date = [y, m, d];
-  const wrap = h + cfg.timeDuration > 24;
-  // cfg.time
-  cfg.time = (wrap ? [0, 24] : [h, h + cfg.timeDuration]).map(e => e * 4);
-  // cfg.duration
-  cfg.duration = wrap ? cfg.dateDuration + 1 : cfg.dateDuration;
-  // cfg.mask
-  if (wrap) {
-    cfg.mask = tableMap(mkTable(96, cfg.duration), (_, i, j) => {
-      const _j = i < h * 4 ? j-1 : j;
-      const _i = i < h * 4 ? i - h * 4 + 96 : i - h * 4;
-      return !(0 <= _j && _j < cfg.dateDuration && 0 <= _i && _i < cfg.timeDuration * 4)
-    });
-    // console.log(dump(cfg.mask));
-  }
+  cfg.startTime = cfg.date;
+  const TA = new TimeAdapter(cfg.startTime, cfg.dateDuration, cfg.timeDuration, tz);
+  cfg.date = TA.getDate();
+  cfg.time = TA.getTime();
+  cfg.duration = TA.getDuration();
+  cfg.mask = TA.getMask();
   cfg.collection = { ...cfg.collection };
   for (let idx in cfg.collection) {
     cfg.collection[idx] = { ...cfg.collection[idx] };
-    cfg.collection[idx].table = parse(cfg.collection[idx].table);
-    if (wrap) {
-      cfg.collection[idx].table = tableMap(cfg.mask, (m, i, j) =>
-        !m && cfg.collection[idx].table[i < h * 4 ? i - h * 4 + 96 : i - h * 4][i < h * 4 ? j-1 : j]
-      );
-    }
+    cfg.collection[idx].table = TA.tbl_localize(parse(cfg.collection[idx].table));
   }
   // console.log(cfg)
   return cfg;
 }
 export function unwrapTable(tbl, cfg, tz) {
-  return tbl;
+  return tbl && new TimeAdapter(cfg.startTime, cfg.dateDuration, cfg.timeDuration, tz).tbl_tablize(tbl);
 }
