@@ -136,8 +136,8 @@ export default function MeetPanel({ params, children }) {
   return (
     <Context.Provider value={{
       config, setConfig,
-      wrapConfig,
-      unwrapTable: useCallback(t => unwrapTable(t, config, tz), [tz, config])
+      wrapConfig, unwrapTable: useCallback(t => unwrapTable(t, config, tz), [tz, config]),
+      timezone: tz,
     }}>
       <main>
         {config &&

@@ -231,7 +231,7 @@ export default function MeetEdit({ params }) {
         <SplitViewContainer style={{ display: focus === null ? 'none' : undefined }}>
           {focus &&
             <AvailableList
-              time={interpret(config.date, config.time[0], focus)}
+              time={interpret(config.date, config.time, focus)}
               list={getAvailable(focus)}
               style={{ paddingTop: '30px', paddingBottom: '30px' }}
             />}

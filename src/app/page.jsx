@@ -55,7 +55,6 @@ export default function Home() {
   const duration = useMemo(() => (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1, [start, end]);
 
   async function confirm() {
-    console.log(title, start, end, time);
     let res = await request('POST', `/api/create-event`, {
       body: {
         time,
@@ -159,7 +158,6 @@ export default function Home() {
                 <Stack direction="row" spacing={1} justifyContent="center" sx={{ width: "100%" }}>
                   <Chip icon={<PublicIcon/>} label={timezone} onClick={async () => {
                     const res = await dialogs.open(TimezoneSelector, { defaultValue: timezone });
-                    console.log(res);
                     if (res && res !== timezone) {
                       setTimezone(res);
                     }

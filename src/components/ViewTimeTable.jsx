@@ -10,7 +10,7 @@ const Context = createContext(false);
 
 function Grid({ ...p }) {
   const theme = useTheme();
-  const { focus, level, maxPeople, highlightRange: range, ratio, maxRatio, highlightMax, mask } = useContext(Context);
+  const { focus, level, maxPeople, highlightRange: range, ratio, maxRatio, highlightMax, mask, index } = useContext(Context);
   const focused = focus && p.i == focus[0] && p.j == focus[1];
   const masked = mask && mask[p.i][p.j];
   const style = { fontSize: '4px' };
@@ -23,8 +23,10 @@ function Grid({ ...p }) {
       Object.assign(style, { background: colorScale(theme.palette.green.main, ratio[p.i][p.j]) });
   } else
     Object.assign(style, { background: "gray" });
-  if (range && slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1]))
-      Object.assign(style, { background: '#FFFF00' });
+  if (range && (Array.isArray(range[0])
+    ? slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1])
+    : index && index[p.i][p.j] !== null && range[0] <= index[p.i][p.j] && index[p.i][p.j] <= range[1]
+  )) Object.assign(style, { background: '#FFFF00' });
   if (masked)
     Object.assign(style, { background: 'gray' });
 
@@ -47,7 +49,7 @@ function Grid({ ...p }) {
 
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
-  time=defaultTime, date=defaultDate, duration=defaultDuration, mask=false,
+  time=defaultTime, date=defaultDate, duration=defaultDuration, mask=false, index=false,
   highlightRange=false, weight=false, highlightMax=false,
   keepFocus=false, ...props
 }) {
@@ -91,7 +93,7 @@ export default function ViewTimeTable({
 
   return (
     <Context.Provider value={{
-      mask,
+      mask, index,
       focus,
       highlightRange, highlightMax,
       ratio, maxRatio,

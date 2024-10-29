@@ -42,7 +42,7 @@ function timeStr(time) {
 }
 
 export default function MeetControl() {
-  const { config } = useConfig();
+  const { config, timezone } = useConfig();
   const interp = useCallback(t => interpret(config.date, config.time[0], t), [config]);
   const [viewFocus, setViewFocus] = useState([0, 0]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
@@ -120,7 +120,7 @@ export default function MeetControl() {
           variant="contained"
           disabled={!start || !end}
           color="primary"
-          onClick={() => window.open(getCalendarLink(config, interp(start), interp(end)))}
+          onClick={() => window.open(getCalendarLink(config, interp(start), interp(end), timezone))}
         />
       </Stack>
       <Tables>

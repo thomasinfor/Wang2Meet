@@ -81,15 +81,20 @@ export default function MeetView() {
   const { config } = useConfig();
   const SP = useSearchParams();
   const highlight = useMemo(() => {
-    return false;
     let lst = (SP.get("range") || "").split(",").map(e => parseInt(e));
-    if (lst.length !== 4 || lst.some(e => isNaN(e) || e < 0 || e >= 96))
+    if (
+      lst.length !== 2 ||
+      lst.some(e =>
+        isNaN(e) ||
+        e < 0 ||
+        e >= config.duration * (config.time[1] - config.time[0]) * 4 ||
+        parseInt(e) !== e
+      )
+    ) return false;
+    if (lst[0] > lst[1])
       return false;
-    const res = [[lst[0], lst[1]], [lst[2], lst[3]]];
-    if (!slotBefore(...res))
-      return false;
-    return res;
-  }, [SP]);
+    return lst;
+  }, [SP, config]);
   const [showHightlight, setShowHightlight] = useState(true);
   const [highlightMax, setHighlightMax] = useState(true);
 
@@ -142,7 +147,7 @@ export default function MeetView() {
         <AvailableList
           className="mobile"
           list={getAvailable(viewFocus)}
-          time={interpret(config.date, config.time[0], viewFocus)}
+          time={interpret(config.date, config.time, viewFocus)}
           style={{ position: 'fixed', top: '75px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
         />}
       <Stack direction="row" spacing={2} sx={{ m: 1.5 }}>
@@ -190,7 +195,7 @@ export default function MeetView() {
           {viewFocus ? (
             <AvailableList
               list={getAvailable(viewFocus)}
-              time={interpret(config.date, config.time[0], viewFocus)}
+              time={interpret(config.date, config.time, viewFocus)}
               style={{ paddingTop: '30px', paddingBottom: '30px' }}
             />
           ) : (viewGroup === true &&
@@ -218,6 +223,7 @@ export default function MeetView() {
               weight={viewGroup === true ? pconfig : false}
               highlightMax={highlightMax && viewGroup === true}
               mask={config.mask}
+              index={config.index}
             />
           </TableWrapper>
         </SplitViewContainer>

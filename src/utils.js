@@ -20,10 +20,12 @@ export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e,
 export function mkTable(r, c, f=null) { return new Array(r).fill(0).map(() => new Array(c).fill(f)); }
 class InterpretedTime {
   constructor(date, time, [i, j]=[0, 0]) {
+    if (!Array.isArray(time))
+      time = [time, time];
     this.primitive = [date, time];
     this.dateObj = new Date(new Date(date).getTime() + 86400000*j);
-    this.time = (time + i) * 15;
-    this.i = i; this.j = j;
+    this.time = (time[0] + i) * 15;
+    this.i = i; this.j = j; this.idx = i + j * (time[1] - time[0]);
     this.year = this.dateObj.getFullYear();
     this.month = this.dateObj.getMonth()+1;
     this.date = this.dateObj.getDate();
@@ -55,7 +57,7 @@ export function cast(table, d1, t1, d2, t2, duration) {
     return table;
   }
 }
-export function getCalendarLink(meet, start, end) {
+export function getCalendarLink(meet, start, end, timezone) {
   // https://github.com/InteractionDesignFoundation/add-event-to-calendar-docs/blob/main/services/google.md
   const end2 = end.next();
   const params = new URLSearchParams;
@@ -70,8 +72,8 @@ export function getCalendarLink(meet, start, end) {
   }T${
     end2.hourPad}${end2.minutePad
   }00`);
-  // params.append("ctz", "Asia/Taipei");
-  const link = `${window.location.origin}/${meet.id}/view?range=${start.i},${start.j},${end.i},${end.j}`;
+  params.append("ctz", timezone);
+  const link = `${window.location.origin}/${meet.id}/view?range=${start.idx},${end.idx}`;
   params.append("details", `<h3>Wang2Meet</h3><a href="${link}">${link}</a>${
     !meet.description ? "" :
     "<h3>Description</h3>" + meet.description.slice(0, 1500)
@@ -119,7 +121,7 @@ class TimeAdapter {
   tbl_tablize(tbl) { return !this.wrap ? tbl : tableMap(mkTable(this.tD * 4, this.dD), (_, i, j) =>
     tbl[this.idx_localize(i, j)[0]][this.idx_localize(i, j)[1]]
   ); }
-
+  getIndex() { return this.tbl_localize(tableMap(mkTable(this.tD * 4, this.dD), (_, i, j) => i + j * this.tD * 4)); }
 }
 export function wrapConfig(cfg, tz) {
   cfg = { ...cfg };
@@ -130,6 +132,7 @@ export function wrapConfig(cfg, tz) {
   cfg.time = TA.getTime();
   cfg.duration = TA.getDuration();
   cfg.mask = TA.getMask();
+  cfg.index = TA.getIndex();
   cfg.collection = { ...cfg.collection };
   for (let idx in cfg.collection) {
     cfg.collection[idx] = { ...cfg.collection[idx] };
