@@ -99,7 +99,7 @@ export default function MeetEdit({ params }) {
       });
       return true;
     }
-  }, [user, request, table, params.meet, setConfig, unwrapTable]);
+  }, [user, request, table, params.meet, setConfig, unwrapTable, wrapConfig]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;

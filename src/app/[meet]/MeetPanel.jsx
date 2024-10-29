@@ -17,11 +17,15 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PublicIcon from '@mui/icons-material/Public';
 import Linear from "@/components/Linear";
+import TimezoneSelector from "@/components/TimezoneSelector";
 import { getTimezoneHere, wrapConfig as _wrapConfig, unwrapTable } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
@@ -133,7 +137,7 @@ export default function MeetPanel({ params, children }) {
     <Context.Provider value={{
       config, setConfig,
       wrapConfig,
-      unwrapTable: useCallback(t => unwrapTable(t, config, tz), [tz])
+      unwrapTable: useCallback(t => unwrapTable(t, config, tz), [tz, config])
     }}>
       <main>
         {config &&
@@ -161,6 +165,16 @@ export default function MeetPanel({ params, children }) {
                 />
               ))}
             </SpeedDial>
+            <Stack direction="row" spacing={1} alignSelf="flex-end" sx={{ px: 1.5 }}>
+              <Chip icon={<PublicIcon/>} label={tz} onClick={async () => {
+                const res = await dialogs.open(TimezoneSelector, { defaultValue: tz });
+                console.log(res);
+                if (res && res !== tz) {
+                  setTz(res);
+                  setConfig(null);
+                }
+              }}/>
+            </Stack>
             <Accordion sx={{
               maxWidth: '90%', minWidth: '400px',
               borderWidth: 1, borderStyle: "solid", borderColor: "primary.main",

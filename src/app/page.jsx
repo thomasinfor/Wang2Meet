@@ -3,6 +3,7 @@ import React from "react";
 import { Fragment, useState, useMemo, useCallback } from "react";
 import { useRouter } from 'next/navigation';
 import styled from "@emotion/styled";
+import { useDialogs } from "@toolpad/core";
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
@@ -17,15 +18,17 @@ import Link from '@mui/material/Link';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import PublicIcon from '@mui/icons-material/Public';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HelpIcon from '@mui/icons-material/Help';
 import Linear from "@/components/Linear";
+import TimezoneSelector from "@/components/TimezoneSelector";
 import { useAuth } from "@/context/Auth";
-import { timezones, getTimezoneHere, interpret } from "@/utils";
+import { getTimezoneHere, interpret } from "@/utils";
 import { useStatus } from "@/context/Status";
 
 const Group = styled.div`
@@ -41,6 +44,7 @@ const DateRange = styled.div`
 export default function Home() {
   const { message } = useStatus();
   const router = useRouter();
+  const dialogs = useDialogs();
   const { history, request } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -48,7 +52,6 @@ export default function Home() {
   const [end, setEnd] = useState(new Date().toLocaleDateString('en-CA'));
   const [time, setTime] = useState([9, 22]);
   const [timezone, setTimezone] = useState(getTimezoneHere());
-  const [inputTimezone, setInputTimezone] = useState("");
   const duration = useMemo(() => (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1, [start, end]);
 
   async function confirm() {
@@ -153,27 +156,15 @@ export default function Home() {
                     onChange={(e, v) => setTime(v)}
                   />
                 </Group>
-                <Autocomplete
-                  disablePortal
-                  autoComplete
-                  disableClearable
-                  options={timezones}
-                  required
-                  size="small"
-                  fullWidth
-                  value={timezone}
-                  onChange={(evt, newValue) => setTimezone(newValue)}
-                  inputValue={inputTimezone}
-                  onInputChange={(evt, newValue) => setInputTimezone(newValue)}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label="Timezone"
-                      variant="outlined"
-                      sx={{ fontFamily: "consolas" }}
-                    />
-                  )}
-                />
+                <Stack direction="row" spacing={1} justifyContent="center" sx={{ width: "100%" }}>
+                  <Chip icon={<PublicIcon/>} label={timezone} onClick={async () => {
+                    const res = await dialogs.open(TimezoneSelector, { defaultValue: timezone });
+                    console.log(res);
+                    if (res && res !== timezone) {
+                      setTimezone(res);
+                    }
+                  }}/>
+                </Stack>
                 <Button
                   variant="contained"
                   onClick={confirm}
