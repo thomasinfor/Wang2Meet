@@ -11,8 +11,12 @@ const GridElement = styled.td(({ theme }) => `
   &.on {
     background: ${theme.palette.primary.main};
   }
-  &.covered {
+  &.covered:not(.disabled) {
     border-width: 0;
+  }
+  &.disabled {
+    background: gray;
+    // pointer-events: none;
   }
 
   &.section0 {

@@ -6,30 +6,36 @@ import BaseGrid from "@/components/BaseGrid";
 import CircularProgress from '@mui/material/CircularProgress';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { inRange, tableMap, defaultTime, defaultDate, defaultDuration } from "@/utils";
+import { inRange, tableMap, defaultTime, defaultDate, defaultDuration, mkTable } from "@/utils";
 
 const Context = createContext(false);
 
 function Grid({ ...p }) {
-  const { newTable, covered } = useContext(Context);
+  const { newTable, covered, mask } = useContext(Context);
+
+  if (mask && mask[p.i][p.j]) {
+    p.down = () => {};
+  }
+
   return (
     <BaseGrid {...p} className={[
       newTable(p.i, p.j) ? "on" : "",
       covered(p.i, p.j) ? "covered" : "",
+      mask && mask[p.i][p.j] ? "disabled" : "",
     ].join(' ')}/>
   );
 }
 
 export default function EditTimeTable({
   value: _value, setValue,
-  time=defaultTime, date=defaultDate, duration=defaultDuration,
+  time=defaultTime, date=defaultDate, duration=defaultDuration, mask=false,
   disabled=false,
   bufferTime=false, alarm=()=>{},
   defaultTable=null, ...props
 }) {
   // const { setIndicator } = useStatus();
   const [synced, setSynced] = useState(1);
-  const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
+  const EMPTY_TABLE = useMemo(() => mkTable(time[1] - time[0], duration, false), [time, duration]);
   useEffect(() => {
     if (defaultTable)
       setValue(defaultTable, false);
@@ -43,7 +49,7 @@ export default function EditTimeTable({
   const newTable = useCallback((i, j) => covered(i, j) ? !value[sel[0][0]][sel[0][1]] : value[i][j], [sel, value, covered]);
   const up = useCallback(() => {
     if (sel) {
-      const res = tableMap(EMPTY_TABLE, (e, i, j) => newTable(i, j));
+      const res = tableMap(EMPTY_TABLE, (e, i, j) => newTable(i, j) && !(mask && mask[i][j]));
       setValue(res);
       if (bufferTime) {
         const t = new Date().getTime();
@@ -52,7 +58,7 @@ export default function EditTimeTable({
       }
     }
     setSel(null);
-  }, [sel, setSel, newTable, bufferTime, EMPTY_TABLE, setValue]);
+  }, [sel, setSel, newTable, bufferTime, EMPTY_TABLE, setValue, mask]);
   const down = useCallback((i, j) => {
     // console.log("down", i, j);
     setSel([[i, j], [i, j]]);
@@ -85,7 +91,7 @@ export default function EditTimeTable({
   // }, [CD]);
 
   return (
-    <Context.Provider value={{ newTable, covered }}>
+    <Context.Provider value={{ newTable, covered, mask }}>
       <TimeTable
         up={up}
         down={down}

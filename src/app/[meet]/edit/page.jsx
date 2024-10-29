@@ -64,7 +64,7 @@ const TableWrapper = styled.div`
 
 export default function MeetEdit({ params }) {
   const dialogs = useDialogs();
-  const { config, setConfig } = useConfig();
+  const { config, setConfig, wrapConfig, unwrapTable } = useConfig();
   const { user, request, signIn } = useAuth();
   const { message } = useStatus();
   const [table, setTable] = useState(null);
@@ -81,24 +81,25 @@ export default function MeetEdit({ params }) {
   const sync = useCallback(async (t) => {
     const time = dump(t || table);
     let res = await request('POST', `/api/${params.meet}`, {
-      body: { time }
+      body: { time: unwrapTable(time) }
     });
     if (!res.ok) {
       return false;
     } else {
       res = await res.json();
       setConfig(cfg => {
+        const newRes = wrapConfig(res);
         const new_col = {};
-        for (let i in res.collection)
+        for (let i in newRes.collection)
           new_col[i] = {
-            ...res.collection[i],
-            table: i === user.email ? cfg.collection[user.email].table : parse(res.collection[i].table)
+            ...newRes.collection[i],
+            table: i === user.email ? cfg.collection[user.email].table : parse(newRes.collection[i].table)
           };
-        return { ...res, collection: new_col };
+        return { ...newRes, collection: new_col };
       });
       return true;
     }
-  }, [user, request, table, params.meet, setConfig]);
+  }, [user, request, table, params.meet, setConfig, unwrapTable]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;
@@ -252,6 +253,7 @@ export default function MeetEdit({ params }) {
                 setValue={update}
                 bufferTime={1}
                 alarm={sync}
+                mask={config.mask}
               />
             </TableWrapper>
           ) : (
@@ -277,6 +279,7 @@ export default function MeetEdit({ params }) {
               duration={config.duration}
               focus={focus}
               setFocus={setFocus}
+              mask={config.mask}
             />
           </TableWrapper>
         </SplitViewContainer>

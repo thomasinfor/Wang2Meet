@@ -136,6 +136,7 @@ export default function MeetControl() {
               setFocus={setViewFocus}
               click={onGridClick}
               highlightRange={(start || end) && [start || end, end || start]}
+              mask={config.mask}
             />
           </TableWrapper>
         </Container>

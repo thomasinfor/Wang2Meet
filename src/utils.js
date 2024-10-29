@@ -17,6 +17,7 @@ export function colorScale(c, r) { return '#' + [c.slice(1,3), c.slice(3, 5), c.
   e => ("0" + parseInt(parseInt(e, 16) * r + 255 * (1-r)).toString(16).toUpperCase()).slice(-2)
 ).join(''); }
 export function tableMap(t, f) { return t.map((row, i) => row.map((e, j) => f(e, i, j))); }
+export function mkTable(r, c, f) { return new Array(r).fill(0).map(() => new Array(c).fill(f)); }
 class InterpretedTime {
   constructor(date, time, [i, j]=[0, 0]) {
     this.primitive = [date, time];
@@ -82,3 +83,42 @@ export function slotBefore(a, b) { return a[1] === b[1] ? a[0] <= b[0] : a[1] <=
 export function sum(x) { return x.reduce((a, b) => a + b, 0); }
 export const timezones = Intl.supportedValuesOf('timeZone');
 export function getTimezoneHere() { return Intl.DateTimeFormat().resolvedOptions().timeZone; }
+export function wrapConfig(cfg, tz) {
+  cfg = { ...cfg };
+  // console.log(cfg, tz);
+  const localTimeStr = new Date(cfg.date).toLocaleString("en-US", { hour12: false, timeZone: tz });
+  const matches = localTimeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+)/);
+  const [m, d, y, h] = matches.slice(1).map(e => parseInt(e));
+  // console.log(localTimeStr, m, d, y, h);
+  // cfg.date
+  cfg.date = [y, m, d];
+  const wrap = h + cfg.timeDuration > 24;
+  // cfg.time
+  cfg.time = (wrap ? [0, 24] : [h, h + cfg.timeDuration]).map(e => e * 4);
+  // cfg.duration
+  cfg.duration = wrap ? cfg.dateDuration + 1 : cfg.dateDuration;
+  // cfg.mask
+  if (wrap) {
+    cfg.mask = tableMap(mkTable(96, cfg.duration), (_, i, j) => {
+      const _j = i < h * 4 ? j-1 : j;
+      const _i = i < h * 4 ? i - h * 4 + 96 : i - h * 4;
+      return !(0 <= _j && _j < cfg.dateDuration && 0 <= _i && _i < cfg.timeDuration * 4)
+    });
+    // console.log(dump(cfg.mask));
+  }
+  cfg.collection = { ...cfg.collection };
+  for (let idx in cfg.collection) {
+    cfg.collection[idx] = { ...cfg.collection[idx] };
+    cfg.collection[idx].table = parse(cfg.collection[idx].table);
+    if (wrap) {
+      cfg.collection[idx].table = tableMap(cfg.mask, (m, i, j) =>
+        !m && cfg.collection[idx].table[i < h * 4 ? i - h * 4 + 96 : i - h * 4][i < h * 4 ? j-1 : j]
+      );
+    }
+  }
+  // console.log(cfg)
+  return cfg;
+}
+export function unwrapTable(tbl, cfg, tz) {
+  return tbl;
+}

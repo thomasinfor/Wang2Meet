@@ -215,7 +215,8 @@ export default function MeetView() {
               setFocus={setViewFocus}
               highlightRange={showHightlight && highlight}
               weight={viewGroup === true ? pconfig : false}
-              highlightMax={highlightMax}
+              highlightMax={highlightMax && viewGroup === true}
+              mask={config.mask}
             />
           </TableWrapper>
         </SplitViewContainer>

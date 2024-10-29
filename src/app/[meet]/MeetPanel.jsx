@@ -16,13 +16,13 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import CircularProgress from '@mui/material/CircularProgress';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
-import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Linear from "@/components/Linear";
-import { parse } from "@/utils";
+import { getTimezoneHere, wrapConfig as _wrapConfig, unwrapTable } from "@/utils";
 import { useAuth } from "@/context/Auth";
 import { useStatus } from "@/context/Status";
 
@@ -69,12 +69,6 @@ const textStyle = {
   textAlign: "center",
 };
 
-function wrapConfig(cfg) {
-  for (let i in cfg.collection)
-    cfg.collection[i].table = parse(cfg.collection[i].table);
-  return cfg;
-}
-
 export default function MeetPanel({ params, children }) {
   const dialogs = useDialogs();
   const { request, addHistory, delHistory, user } = useAuth();
@@ -82,6 +76,8 @@ export default function MeetPanel({ params, children }) {
   const router = useRouter();
   const [config, setConfig] = useState(null);
   const isAdmin = config?.creator?.email && (config?.creator?.email === user?.email);
+  const [tz, setTz] = useState(getTimezoneHere());
+  const wrapConfig = useCallback(cfg => _wrapConfig(cfg, tz), [tz]);
 
   useEffect(() => {
     (async () => {
@@ -95,7 +91,7 @@ export default function MeetPanel({ params, children }) {
         router.push("/");
       }
     })();
-  }, [params.meet, delHistory, addHistory, request, message, router]);
+  }, [params.meet, delHistory, addHistory, request, message, router, wrapConfig]);
   useEffect(() => {
     if (config) {
       addHistory(config);
@@ -111,7 +107,7 @@ export default function MeetPanel({ params, children }) {
   }, [router, config, tab]);
   const FABicon = (() => {
     const current = modes.filter(e => e[0] === tab).pop();
-    if (!current) return <InsertEmoticonIcon/>;
+    if (!current) return <CircularProgress color="inherit" size={20}/>;
     else {
       const Icon = current[2];
       return <Icon onPointerDown={evt => {
@@ -134,7 +130,11 @@ export default function MeetPanel({ params, children }) {
   }, [nextTab]);
 
   return (
-    <Context.Provider value={{ config, setConfig }}>
+    <Context.Provider value={{
+      config, setConfig,
+      wrapConfig,
+      unwrapTable: useCallback(t => unwrapTable(t, config, tz), [tz])
+    }}>
       <main>
         {config &&
           <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0', justifyContent: 'flex-start' }}>

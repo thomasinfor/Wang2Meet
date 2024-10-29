@@ -4,14 +4,15 @@ import { useState, useEffect, useMemo, useCallback, useContext, createContext } 
 import { useTheme } from "@emotion/react";
 import TimeTable from "@/components/TimeTable";
 import BaseGrid from "@/components/BaseGrid";
-import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration, slotBefore, sum } from "@/utils";
+import { colorScale, tableMap, defaultTime, defaultDate, defaultDuration, slotBefore, sum, mkTable } from "@/utils";
 
 const Context = createContext(false);
 
 function Grid({ ...p }) {
   const theme = useTheme();
-  const { focus, level, maxPeople, highlightRange: range, ratio, maxRatio, highlightMax } = useContext(Context);
+  const { focus, level, maxPeople, highlightRange: range, ratio, maxRatio, highlightMax, mask } = useContext(Context);
   const focused = focus && p.i == focus[0] && p.j == focus[1];
+  const masked = mask && mask[p.i][p.j];
   const style = { fontSize: '4px' };
 
   // background
@@ -24,10 +25,16 @@ function Grid({ ...p }) {
     Object.assign(style, { background: "gray" });
   if (range && slotBefore(range[0], [p.i, p.j]) && slotBefore([p.i, p.j], range[1]))
       Object.assign(style, { background: '#FFFF00' });
+  if (masked)
+    Object.assign(style, { background: 'gray' });
 
   // border
   if (focused)
     Object.assign(style, { border: '1px solid red' });
+
+  // pointer-events
+  if (masked)
+    Object.assign(style, { pointerEvents: "none" });
 
   return (
     <BaseGrid {...p} style={style}>
@@ -40,11 +47,11 @@ function Grid({ ...p }) {
 
 export default function ViewTimeTable({
   value, focus: p_focus, setFocus: p_setFocus=()=>{},
-  time=defaultTime, date=defaultDate, duration=defaultDuration,
+  time=defaultTime, date=defaultDate, duration=defaultDuration, mask=false,
   highlightRange=false, weight=false, highlightMax=false,
   keepFocus=false, ...props
 }) {
-  const EMPTY_TABLE = useMemo(() => new Array(time[1] - time[0]).fill(0).map(() => new Array(duration).fill(false)), [time, duration]);
+  const EMPTY_TABLE = useMemo(() => mkTable(time[1] - time[0], duration, false), [time, duration]);
   const [_focus, _setFocus] = useState(null);
   const setFocus = useCallback((...x) => { _setFocus(...x); p_setFocus(...x); }, [_setFocus, p_setFocus]);
   useEffect(() => { if (p_focus !== undefined) _setFocus(p_focus) }, [p_focus]);
@@ -84,6 +91,7 @@ export default function ViewTimeTable({
 
   return (
     <Context.Provider value={{
+      mask,
       focus,
       highlightRange, highlightMax,
       ratio, maxRatio,
