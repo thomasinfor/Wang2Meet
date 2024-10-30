@@ -93,7 +93,7 @@ export default function MeetEdit({ params }) {
         for (let i in newRes.collection)
           new_col[i] = {
             ...newRes.collection[i],
-            table: i === user.email ? cfg.collection[user.email].table : parse(newRes.collection[i].table)
+            table: i === user.email ? cfg.collection[user.email].table : newRes.collection[i].table
           };
         return { ...newRes, collection: new_col };
       });
