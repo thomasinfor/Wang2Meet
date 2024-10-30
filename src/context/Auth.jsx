@@ -1,12 +1,11 @@
 "use client"
 import React from "react";
-import { useContext, createContext, useState, useEffect, useCallback } from 'react';
+import { useMemo, useContext, createContext, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { useLocalStorageState } from '@toolpad/core';
 import { useDialogs } from '@toolpad/core/useDialogs';
 import { onAuthStateChanged, getAuth, signInWithPopup, signInWithRedirect, signOut, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { getDatabase, onValue, ref, update, get, push } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
-import { STORAGE_KEY } from '@/utils';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -20,6 +19,7 @@ import InAppBrowsersImage from "@assets/in-app-browsers.png";
 const firebaseConfig = {
   apiKey: "AIzaSyBemPvV-6idk0CPddSa1kS0M6jXVtcH380",
   authDomain: process.env.NODE_ENV === 'development' ? "when2meet-11dfe.firebaseapp.com" : "w2m.wang.works",
+  databaseURL: "https://when2meet-11dfe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "when2meet-11dfe",
   storageBucket: "when2meet-11dfe.appspot.com",
   messagingSenderId: "344365803313",
@@ -29,6 +29,88 @@ const firebaseConfig = {
 const vapidKey = "BEp8Kz7HnEAnOruo3SEBcYJ50ziygXvI8A2eeHXxlW-P60PEx9kK9WCUfr7MSsLBXczx37fj8YSvOBBq87oombI";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const database = getDatabase(app);
+
+const _useSyncData = (paths, { sync = true, postProcess = e => e } = {}) => {
+  const [data, setData] = useState([]);
+  const [error, setError] = useState([]);
+
+  useEffect(() => {
+    if (paths?.length) {
+      setData(d => {
+        if (d.length === paths.length) return d;
+        if (d.length > paths.length)
+          return d.slice(0, paths.length);
+        else
+        return [...d, ...new Array(paths.length - d.length).fill(undefined)];
+      });
+      setError(e => {
+        if (e.length === paths.length) return e;
+        if (e.length > paths.length)
+          return e.slice(0, paths.length);
+        else
+        return [...e, ...new Array(paths.length - e.length).fill(null)];
+      });
+    }
+  }, [paths?.length]);
+
+  useEffect(() => {
+    if (paths) {
+      const callbacks = paths.map((p, idx) => {
+        const setMyData = myData => setData(d => d.map((e, i) => i === idx ? postProcess(myData) : e));
+        const setMyError = myError => setError(err => err.map((e, i) => i === idx ? myError : e));
+        if (!p) {
+          setMyData(null);
+          setMyError(null);
+        }
+        if (sync) {
+          return onValue(ref(database, p), (snapshot) => {
+            setMyData(snapshot.val());
+            setMyError(null);
+          }, (error) => {
+            setMyError(error);
+          });
+        } else {
+          get(ref(database, p)).then((snapshot) => {
+            setMyData(snapshot.val());
+            setMyError(null);
+          }).catch((error) => {
+            setMyError(error);
+          });
+        }
+      });
+      return (...args) => callbacks.forEach(f => f && f(...args));
+    }
+  }, [paths, postProcess, sync]);
+
+  return [data, error];
+};
+
+export const useSyncData = (path, ...args) => {
+  const paths = useMemo(() => Array.isArray(path) || !path ? path : [path], [path]);
+  const res = _useSyncData(paths, ...args);
+  return Array.isArray(path) ? res : res.map(e => e[0]);
+}
+
+export const useSyncUpdate = () => {
+  const [status, setStatus] = useState("ready");
+  const [error, setError] = useState(null);
+  const updateData = useCallback(async (path, value, { push: _push = false }={}) => {
+    // if (status === "pending") return;
+    const reference = _push ? push(ref(database, path)) : ref(database, path);
+    try {
+      setStatus("pending");
+      await update(reference, value);
+      setStatus("ready");
+    } catch(e) {
+      setStatus("error");
+      setError(e);
+    }
+    return reference;
+  }, [setStatus, setError]);
+
+  return [updateData, status, error];
+};
 
 const AuthContext = createContext({ user: null });
 
@@ -153,27 +235,17 @@ export const AuthContextProvider = ({ children }) => {
   }
 
 
-  const [history, setHistory] = useLocalStorageState(STORAGE_KEY`history`, null, {
-    codec: {
-      parse: v => {
-        try {
-          return JSON.parse(v);
-        } catch(e) {
-          console.log(e);
-          return [];
-        }
-      },
-      stringify: v => JSON.stringify(v)
-    }
+  const [history] = useSyncData(user && `/history/${user.uid}`, {
+    postProcess: useCallback(
+      h => Object.entries(h || {}).toSorted((a, b) => new Date(b[1].atime) - new Date(a[1].atime)).map(e => e[1].data),
+      []
+    )
   });
-  useEffect(() => console.log(history.map(e => e.id).join("\n")), [history]);
-  useEffect(() => console.log("setHistory"), []);
-  const addHistory = useCallback(config => {
-    setHistory(h => [].concat([{ ...config, collection: undefined }], (h || []).filter(e => e.id !== config.id)).slice(0, 100));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const delHistory = useCallback(id => {
-    setHistory(h => (h || []).filter(e => e.id !== id));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [updateData] = useSyncUpdate();
+  const addHistory = useCallback(config => user && updateData(`/history/${user.uid}/${config.id}`, {
+    atime: new Date(), data: { ...config, collection: null },
+  }), [updateData, user]);
+  const delHistory = useCallback(id => user && updateData(`/history/${user.uid}`, { [id]: null }), [updateData, user]);
 
   return (
     <AuthContext.Provider value={{
