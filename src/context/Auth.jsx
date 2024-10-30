@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { useMemo, useContext, createContext, useState, useEffect, useCallback } from 'react';
+import { useContext, createContext, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useLocalStorageState } from '@toolpad/core';
 import { useDialogs } from '@toolpad/core/useDialogs';
@@ -153,7 +153,7 @@ export const AuthContextProvider = ({ children }) => {
   }
 
 
-  const [_history, setHistory] = useLocalStorageState(STORAGE_KEY`history`, null, {
+  const [history, setHistory] = useLocalStorageState(STORAGE_KEY`history`, null, {
     codec: {
       parse: v => {
         try {
@@ -166,13 +166,14 @@ export const AuthContextProvider = ({ children }) => {
       stringify: v => JSON.stringify(v)
     }
   });
-  const history = useMemo(() => _history || [], [_history]);
+  useEffect(() => console.log(history.map(e => e.id).join("\n")), [history]);
+  useEffect(() => console.log("setHistory"), []);
   const addHistory = useCallback(config => {
-    setHistory([].concat([{ ...config, collection: undefined }], history.filter(e => e.id !== config.id)).slice(0, 100));
-  }, [setHistory, history]);
+    setHistory(h => [].concat([{ ...config, collection: undefined }], (h || []).filter(e => e.id !== config.id)).slice(0, 100));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const delHistory = useCallback(id => {
-    setHistory(history.filter(e => e.id !== id));
-  }, [setHistory, history]);
+    setHistory(h => (h || []).filter(e => e.id !== id));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AuthContext.Provider value={{

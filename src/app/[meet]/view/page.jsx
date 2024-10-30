@@ -30,7 +30,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
-import { interpret, slotBefore } from "@/utils";
+import { interpret } from "@/utils";
 import { useConfig } from "../MeetPanel";
 
 const Tables = styled.div`

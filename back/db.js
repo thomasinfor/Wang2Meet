@@ -54,7 +54,7 @@ const meetSchema = new Schema({
         o = {
           ...o,
           _id: undefined,
-          date: new Date(Moment.tz(`${o.date[0]}-${o.date[1]}-${o.date[2]} ${o.time[0].toString().padStart(2, "0")}`, o.timezone)),
+          date: new Date(Moment.tz([...o.date, o.time[0]], o.timezone)),
           timeDuration: o.time[1] - o.time[0],
           dateDuration: o.duration,
           tables: [],
