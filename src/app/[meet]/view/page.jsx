@@ -32,41 +32,8 @@ import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
 import { interpret } from "@/utils";
 import { useConfig } from "../MeetPanel";
+import { Tables, SplitViewContainer, TableWrapper} from "@/components/SplitTableView";
 
-const Tables = styled.div`
-  display: flex;
-  justify-content: space-evenly;
-  width: 100vw;
-  gap: 20px;
-  flex-wrap: wrap;
-  overflow: auto;
-  padding: 0 10px;
-  box-sizing: border-box;
-`;
-const Container = styled.div`
-  overflow: auto;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  border: 1px dashed black;
-  border-radius: 5px;
-`;
-const SplitViewContainer = styled(Container)`
-  width: 45%;
-  @media (max-width: 700px) {
-    width: 100%;
-  }
-  &.no-border {
-    border: none;
-  }
-`;
-const TableWrapper = styled.div`
-  max-width: 100%;
-  max-height: 95vh;
-`;
 const SmallMenuItem = styled(MenuItem)(() => ({
   minHeight: 0,
   maxWidth: '100%',
@@ -191,14 +158,15 @@ export default function MeetView() {
           </IconButton>}
       </Stack>
       <Tables>
-        <SplitViewContainer className="pc">
-          {viewFocus ? (
-            <AvailableList
-              list={getAvailable(viewFocus)}
-              time={interpret(config.date, config.time, viewFocus)}
-              style={{ paddingTop: '30px', paddingBottom: '30px' }}
-            />
-          ) : (viewGroup === true &&
+        <SplitViewContainer className={"pc " + (viewFocus ? "" : "hidden")}>
+          <AvailableList
+            list={getAvailable(viewFocus || [0, 0])}
+            time={interpret(config.date, config.time, viewFocus || [0, 0])}
+            style={{ paddingTop: '30px', paddingBottom: '30px' }}
+          />
+        </SplitViewContainer>
+        <SplitViewContainer className={"pc " + (viewFocus ? "hidden" : "")}>
+          {viewGroup === true &&
             <TableWrapper style={{ width: '100%' }}>
               <ParticipantConfig
                 config={config}
@@ -206,7 +174,7 @@ export default function MeetView() {
                 setValue={setPconfig}
               />
             </TableWrapper>
-          )}
+          }
         </SplitViewContainer>
         <SplitViewContainer>
           <TableWrapper>

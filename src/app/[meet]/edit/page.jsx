@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useDialogs } from "@toolpad/core";
-import styled from "@emotion/styled";
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -26,41 +25,7 @@ import { useStatus } from "@/context/Status";
 import { useConfig } from "../MeetPanel";
 import ClearScheduleImage from "@assets/clear-schedule.png";
 import PasteScheduleImage from "@assets/paste-schedule.png";
-
-const Tables = styled.div`
-  display: flex;
-  justify-content: space-evenly;
-  width: 100vw;
-  gap: 20px;
-  flex-wrap: wrap;
-  overflow: auto;
-  padding: 0 10px;
-  box-sizing: border-box;
-`;
-const Container = styled.div`
-  overflow: auto;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  border: 1px dashed black;
-  border-radius: 5px;
-`;
-const SplitViewContainer = styled(Container)`
-  width: 45%;
-  @media (max-width: 700px) {
-    width: 100%;
-  }
-  &.no-border {
-    border: none;
-  }
-`;
-const TableWrapper = styled.div`
-  max-width: 100%;
-  max-height: 95vh;
-`;
+import { Tables, SplitViewContainer, TableWrapper} from "@/components/SplitTableView";
 
 export default function MeetEdit({ params }) {
   const dialogs = useDialogs();
@@ -228,18 +193,16 @@ export default function MeetEdit({ params }) {
           />}
       </Stack>
       <Tables>
-        <SplitViewContainer style={{ display: focus === null ? 'none' : undefined }}>
-          {focus &&
-            <AvailableList
-              time={interpret(config.date, config.time, focus)}
-              list={getAvailable(focus)}
-              style={{ paddingTop: '30px', paddingBottom: '30px' }}
-            />}
+        <SplitViewContainer className={focus === null ? 'hidden' : ""}>
+          <AvailableList
+            time={interpret(config.date, config.time, focus || [0, 0])}
+            list={getAvailable(focus || [0, 0])}
+            style={{ paddingTop: '30px', paddingBottom: '30px' }}
+          />
         </SplitViewContainer>
         <SplitViewContainer
           {...syncScroll(0)}
-          style={{ display: focus !== null ? 'none' : undefined }}
-          className={user ? "" : "no-border"}
+          className={(focus !== null ? 'hidden' : "") + (user ? "" : " no-border")}
         >
           {user ? (
             <TableWrapper>
