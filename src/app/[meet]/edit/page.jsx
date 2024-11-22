@@ -193,7 +193,7 @@ export default function MeetEdit({ params }) {
           />}
       </Stack>
       <Tables>
-        <SplitViewContainer className={focus === null ? 'hidden' : ""}>
+        <SplitViewContainer className={(focus === null ? 'hidden' : "") + " pc"}>
           <AvailableList
             time={interpret(config.date, config.time, focus || [0, 0])}
             list={getAvailable(focus || [0, 0])}

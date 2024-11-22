@@ -7,7 +7,7 @@ export const Tables = styled.div`
   // gap: 20px;
   flex-wrap: wrap;
   overflow: auto;
-  // padding: 0 10px;
+  padding: 0 10px;
   box-sizing: border-box;
 `;
 const Container = styled.div`
@@ -22,7 +22,7 @@ const Container = styled.div`
   border-radius: 5px;
 `;
 export const SplitViewContainer = styled(Container)`
-  width: 45%;
+  width: 48%;
   &:not(.hidden):last-of-type {
     margin-left: 20px;
   }
