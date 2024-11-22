@@ -3,8 +3,6 @@ import React from "react";
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { useRouter, usePathname } from 'next/navigation'
 import { useDialogs } from "@toolpad/core";
-import SpeedDial from '@mui/material/SpeedDial';
-import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Typography from '@mui/material/Typography';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -19,6 +17,10 @@ import DialogActions from '@mui/material/DialogActions';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
+import BottomNavigation from '@mui/material/BottomNavigation';
+import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -109,18 +111,6 @@ export default function MeetPanel({ params, children }) {
     if (idx === -1) return;
     router.push(`/${config.id}/${modes[(idx+1) % modes.length][0]}`);
   }, [router, config, tab]);
-  const FABicon = (() => {
-    const current = modes.filter(e => e[0] === tab).pop();
-    if (!current) return <CircularProgress color="inherit" size={20}/>;
-    else {
-      const Icon = current[2];
-      return <Icon onPointerDown={evt => {
-        if (evt.pointerType !== "mouse") return;
-        nextTab();
-      }}/>;
-    }
-  })();
-  const [FABopen, setFABopen] = useState(false);
 
   useEffect(() => {
     function onkeydown(e) {
@@ -140,108 +130,107 @@ export default function MeetPanel({ params, children }) {
       timezone: tz,
     }}>
       <main>
-        {config &&
-          <Linear style={{ minHeight: 'calc(100vh - 56px)', gap: '10px', padding: '15px 0', justifyContent: 'flex-start' }}>
-            <SpeedDial
-              direction="down"
-              ariaLabel="mode-switch"
-              sx={{ position: 'absolute', top: 10, left: 10, opacity: 0.8, transform: "scale(0.8)", transformOrigin: "top left" }}
-              icon={FABicon}
-              onClose={() => setFABopen(false)}
-              onOpen={() => setFABopen(true)}
-              open={FABopen}
-            >
-              {modes.filter(e => e[0] !== tab).map(([id, label, Icon]) => (
-                <SpeedDialAction
-                  key={id}
-                  icon={<Icon/>}
-                  tooltipOpen
-                  tooltipPlacement="right"
-                  tooltipTitle={label}
-                  onClick={() => {
-                    router.push(`/${config.id}/${id}`);
-                    setFABopen(false);
-                  }}
-                />
-              ))}
-            </SpeedDial>
-            <Stack direction="row" spacing={1} alignSelf="flex-end" sx={{ px: 1.5 }}>
-              <Chip icon={<PublicIcon/>} label={tz} onClick={async () => {
-                const res = await dialogs.open(TimezoneSelector, { defaultValue: tz });
-                console.log(res);
-                if (res && res !== tz) {
-                  setTz(res);
-                  setConfig(null);
-                }
-              }}/>
-            </Stack>
-            <Accordion sx={{
-              maxWidth: '90%', minWidth: '400px',
-              borderWidth: 1, borderStyle: "solid", borderColor: "primary.main",
-              borderRadius: "12px!important", boxShadow: "none", "&:before": { display: 'none' },
-              "& *:not(.MuiSvgIcon-root, .MuiAccordionSummary-expandIconWrapper)" : {
-                overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
-              }
-            }} defaultExpanded>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon/>}
-                sx={{
-                  "& .MuiAccordionSummary-content:not(.Mui-expanded)" : {
-                    whiteSpace: "nowrap",
-                  },
-                  "& *": {
-                    overflowY: 'visible!important'
+        {!config ? (
+          <Linear style={{ height: 'calc(100vh - 56px)' }}><CircularProgress/></Linear>
+        ) :
+          <>
+            <Linear style={{
+              minHeight: 'calc(100vh - 56px)',
+              gap: '10px',
+              paddingTop: 15,
+              paddingBottom: 15 + 56,
+              justifyContent: 'flex-start'
+            }}>
+              <Stack direction="row" spacing={1} alignSelf="flex-end" sx={{ px: 1.5 }}>
+                <Chip icon={<PublicIcon/>} label={tz} onClick={async () => {
+                  const res = await dialogs.open(TimezoneSelector, { defaultValue: tz });
+                  console.log(res);
+                  if (res && res !== tz) {
+                    setTz(res);
+                    setConfig(null);
                   }
-                }}>
-                <Typography variant="h5" sx={textStyle}>
-                  {isAdmin &&
-                    <IconButton color="primary" onClick={async event => {
-                      if (!isAdmin) return;
-                      event.stopPropagation();
-                      const newTitle = await dialogs.open(ChangeInfoForm, { field: "Title", defaultValue: config.title });
-                      if (newTitle === false) return;
-                      let res = await request('POST', `/api/${params.meet}/modify`, {
-                        body: { title: newTitle }
-                      });
-                      if (res.ok) {
-                        setConfig(wrapConfig(await res.json()));
-                        message("Update successfully", { variant: "success" });
-                      } else {
-                        message("Update failed", { variant: "error" });
-                      }
-                    }} sx={{ transform: 'translateY(-1px)', float: "left" }}>
-                      <EditIcon fontSize="small"/>
-                    </IconButton>}
-                  {config.title}
-                </Typography>
-              </AccordionSummary>
-              {config.description &&
-                <AccordionDetails sx={{ whiteSpace: "pre-line", display: "flex", justifyContent: "center" }}>
-                  <Typography sx={textStyle}>
+                }}/>
+              </Stack>
+              <Accordion sx={{
+                maxWidth: '90%', minWidth: '400px',
+                borderWidth: 1, borderStyle: "solid", borderColor: "primary.main",
+                borderRadius: "12px!important", boxShadow: "none", "&:before": { display: 'none' },
+                "& *:not(.MuiSvgIcon-root, .MuiAccordionSummary-expandIconWrapper)" : {
+                  overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
+                }
+              }} defaultExpanded>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon/>}
+                  sx={{
+                    "& .MuiAccordionSummary-content:not(.Mui-expanded)" : {
+                      whiteSpace: "nowrap",
+                    },
+                    "& *": {
+                      overflowY: 'visible!important'
+                    }
+                  }}>
+                  <Typography variant="h5" sx={textStyle}>
                     {isAdmin &&
                       <IconButton color="primary" onClick={async event => {
-                      if (!isAdmin) return;
-                      event.stopPropagation();
-                      const newDescription = await dialogs.open(ChangeInfoForm, { field: "Description", defaultValue: config.description });
-                      if (newDescription === false) return;
-                      let res = await request('POST', `/api/${params.meet}/modify`, {
-                        body: { description: newDescription }
-                      });
-                      if (res.ok) {
-                        setConfig(wrapConfig(await res.json()));
-                        message("Update successfully", { variant: "success" });
-                      } else {
-                        message("Update failed", { variant: "error" });
-                      }
-                    }} sx={{ transform: 'translateY(-4px)', float: "left" }}>
-                        <EditIcon fontSize="small" sx={{ width: 16, height: 16 }}/>
+                        if (!isAdmin) return;
+                        event.stopPropagation();
+                        const newTitle = await dialogs.open(ChangeInfoForm, { field: "Title", defaultValue: config.title });
+                        if (newTitle === false) return;
+                        let res = await request('POST', `/api/${params.meet}/modify`, {
+                          body: { title: newTitle }
+                        });
+                        if (res.ok) {
+                          setConfig(wrapConfig(await res.json()));
+                          message("Update successfully", { variant: "success" });
+                        } else {
+                          message("Update failed", { variant: "error" });
+                        }
+                      }} sx={{ transform: 'translateY(-1px)', float: "left" }}>
+                        <EditIcon fontSize="small"/>
                       </IconButton>}
-                    {config.description}
+                    {config.title}
                   </Typography>
-                </AccordionDetails>}
-            </Accordion>
-            {children}
-          </Linear>}
+                </AccordionSummary>
+                {config.description &&
+                  <AccordionDetails sx={{ whiteSpace: "pre-line", display: "flex", justifyContent: "center" }}>
+                    <Typography sx={textStyle}>
+                      {isAdmin &&
+                        <IconButton color="primary" onClick={async event => {
+                        if (!isAdmin) return;
+                        event.stopPropagation();
+                        const newDescription = await dialogs.open(ChangeInfoForm, { field: "Description", defaultValue: config.description });
+                        if (newDescription === false) return;
+                        let res = await request('POST', `/api/${params.meet}/modify`, {
+                          body: { description: newDescription }
+                        });
+                        if (res.ok) {
+                          setConfig(wrapConfig(await res.json()));
+                          message("Update successfully", { variant: "success" });
+                        } else {
+                          message("Update failed", { variant: "error" });
+                        }
+                      }} sx={{ transform: 'translateY(-4px)', float: "left" }}>
+                          <EditIcon fontSize="small" sx={{ width: 16, height: 16 }}/>
+                        </IconButton>}
+                      {config.description}
+                    </Typography>
+                  </AccordionDetails>}
+              </Accordion>
+              {children}
+            </Linear>
+            <Box sx={{ zIndex: 100, position: "fixed", left: 0, bottom: 0, width: 1 }}>
+              <Divider/>
+              <BottomNavigation showLabels value={modes.map(e => e[0]).indexOf(tab)}>
+                {modes.map(([key, label, Icon]) =>
+                  <BottomNavigationAction
+                    key={key}
+                    label={label}
+                    icon={<Icon/>}
+                    onClick={() => router.push(`/${config.id}/${key}`)}
+                  />)}
+              </BottomNavigation>
+            </Box>
+          </>}
       </main>
     </Context.Provider>
   );
