@@ -28,6 +28,7 @@ export const SplitViewContainer = styled(Container)`
   }
   @media (max-width: 700px) {
     width: 100%;
+    margin-left: 0!important;
   }
   &.no-border {
     border: none;
