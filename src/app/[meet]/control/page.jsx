@@ -43,7 +43,7 @@ function timeStr(time) {
 
 export default function MeetControl() {
   const { config, timezone } = useConfig();
-  const interp = useCallback(t => interpret(config.date, config.time[0], t), [config]);
+  const interp = useCallback(t => interpret(config.date, config.time, t), [config]);
   const [viewFocus, setViewFocus] = useState([0, 0]);
   const getAvailable = useCallback(f => Object.entries(config.collection).map(([k, v]) => ({
     name: v.name, email: k, available: v.table[f[0]][f[1]],
