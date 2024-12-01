@@ -24,15 +24,26 @@ import TableRow from '@mui/material/TableRow';
 import Input from '@mui/material/Input';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import TuneIcon from '@mui/icons-material/Tune';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
 import { interpret } from "@/utils";
 import { useConfig } from "../MeetPanel";
 import { Tables, SplitViewContainer, TableWrapper} from "@/components/SplitTableView";
+
+function Details({ children }) {
+  return (
+    <Typography sx={{ color: 'text.secondary', "&:before": { content: "'> '" } }} variant="caption">
+      {children}
+    </Typography>
+  );
+}
 
 const SmallMenuItem = styled(MenuItem)(() => ({
   minHeight: 0,
@@ -117,46 +128,84 @@ export default function MeetView() {
           time={interpret(config.date, config.time, viewFocus)}
           style={{ position: 'fixed', top: '75px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
         />}
-      <Stack direction="row" spacing={2} sx={{ m: 1.5 }}>
-        {highlight &&
-          <Chip
-            icon={<LightbulbIcon sx={showHightlight ? { color: 'yellow!important' } : {}}/>}
-            label="Highlight"
-            variant="contained"
-            color="primary"
-            onClick={() => setShowHightlight(s => !s)}
-          />}
-        <Chip
-          icon={<ChangeCircleIcon style={{ color: "white" }}/>}
-          label="Max Participants"
-          variant="contained"
-          color={highlightMax ? "purple" : "green"}
-          onClick={() => setHighlightMax(h => !h)}
-        />
-      </Stack>
-      <Stack direction="row" alignItems="center">
-        <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
-          <InputLabel>Target</InputLabel>
-          <Select
-            value={viewGroup}
-            label="Target"
-            onChange={e => setViewGroup(e.target.value)}
-            sx={{ "& .MuiSelect-select > span": { display: 'none' } }}
-          >
-            <SmallMenuItem value={true}>
-              <em>ALL</em>
-            </SmallMenuItem>
-            {Object.entries(config.collection).map(([k, v]) =>
-              <SmallMenuItem value={k} key={k}>
-                {v.name}<span>&nbsp;&nbsp;{k}</span>
-              </SmallMenuItem>)}
-          </Select>
-        </FormControl>
-        {viewGroup === true &&
-          <IconButton color="primary" onClick={() => setPconfigOpen(true)} className="mobile">
-            <TuneIcon/>
-          </IconButton>}
-      </Stack>
+      <div style={{ width: "95%", maxWidth: 600, paddingBottom: 10 }}>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+            <Stack>
+              <Typography>View target</Typography>
+              <Details>
+                Currenlty viewing: <b>{viewGroup === true ? <i>all participants</i> : viewGroup}</b>
+              </Details>
+            </Stack>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl sx={{ p: 1, maxWidth: '100%', minWidth: 120, boxSizing: 'border-box' }} size="small">
+              <InputLabel>Target</InputLabel>
+              <Select
+                value={viewGroup}
+                label="Target"
+                onChange={e => setViewGroup(e.target.value)}
+                sx={{ "& .MuiSelect-select > span": { display: 'none' } }}
+              >
+                <SmallMenuItem value={true}>
+                  <em>ALL</em>
+                </SmallMenuItem>
+                {Object.entries(config.collection).map(([k, v]) =>
+                  <SmallMenuItem value={k} key={k}>
+                    {v.name}<span>&nbsp;&nbsp;{k}</span>
+                  </SmallMenuItem>)}
+              </Select>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+            <Stack>
+              <Typography>Highlights</Typography>
+              <Details>
+                Highlight important information on the timetable
+              </Details>
+            </Stack>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack direction="row" spacing={2}>
+              {!highlight && viewGroup !== true &&
+                <Typography variant="body2">Nothing to highlight for now.</Typography>}
+              {highlight &&
+                <Chip
+                  icon={<LightbulbIcon sx={showHightlight ? { color: 'yellow!important' } : {}}/>}
+                  label="Selected Range"
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setShowHightlight(s => !s)}
+                />}
+              {viewGroup === true &&
+                <Chip
+                  icon={<ChangeCircleIcon style={{ color: "white" }}/>}
+                  label="Max Participants"
+                  variant="contained"
+                  color={highlightMax ? "purple" : "green"}
+                  onClick={() => setHighlightMax(h => !h)}
+                />}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion className="mobile">
+          <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+            <Stack>
+              <Typography>Weights & Pins</Typography>
+              <Details>
+                Mark / exclude someone or assign importance
+              </Details>
+            </Stack>
+          </AccordionSummary>
+          <ParticipantConfig
+            config={config}
+            value={pconfig}
+            setValue={setPconfig}
+          />
+        </Accordion>
+      </div>
       <Tables>
         <SplitViewContainer className={"pc " + (viewFocus ? "" : "hidden")}>
           <AvailableList
