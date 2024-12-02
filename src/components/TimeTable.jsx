@@ -1,8 +1,13 @@
 "use client"
-import React from "react";
+import React, { useRef } from "react";
 import { useState, useEffect, useMemo } from "react";
 import styled from "@emotion/styled";
 import { Roboto_Mono } from "next/font/google";
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import IconButton from "@mui/material/IconButton";
 import { Time, dayOfWeek, defaultTime, defaultDate, defaultDuration } from "@/utils";
 
 const roboto_mono = Roboto_Mono({ subsets: ["latin"] });
@@ -33,7 +38,7 @@ const TimeTd = styled.td`
   background: #fff;
   font-size: 11px;
   left: 0;
-  z-index: 1;
+  z-index: 2;
 `;
 const DateCell = styled.td`
   & > span {
@@ -41,14 +46,49 @@ const DateCell = styled.td`
   }
   line-height: 100%;
   white-space: pre;
-  padding: 3% 5px;
+  padding: 3vh 5px;
   position: sticky;
   top: 0;
   background: #fff;
-  z-index: 2;
+  z-index: 1;
 `;
 const Container = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
 `;
+const TableCtrl = styled.div`
+  position: absolute;
+  z-index: 3;
+  & {
+    --w: 50px;
+    --h: calc(6vh + 34.4px);
+  }
+`;
+const Corner = styled(TableCtrl)`
+  top: 0; left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(white, white calc(var(--h) - 7px), transparent calc(var(--h) - 7px), transparent);
+  height: var(--h);
+  width: var(--w);
+`;
+const ScrollX = styled(TableCtrl)(({ theme }) => `
+  top: 0;
+  height: var(--h);
+  display: flex;
+  align-items: center;
+  color: ${theme.palette.primary.main};
+`);
+const ScrollY = styled(TableCtrl)(({ theme }) => `
+  left: 0;
+  width: var(--w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: ${theme.palette.primary.main};
+`);
 
 export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{}, click=()=>{},
@@ -56,6 +96,7 @@ export default function TimeTable({
   Grid, corner=null,
   disabled=false, hideDate=false, ...props
 }) {
+  const scrollRef = useRef();
   const [randomID, setRandomID] = useState(0);
   useEffect(() => { setRandomID(parseInt(Math.random() * 1e8)); }, []);
 
@@ -104,35 +145,66 @@ export default function TimeTable({
 
   return (
     <Container {...props} className={roboto_mono.className}>
-      <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
-        <tbody>
-          <tr>
-            <td>{corner}</td>
-            {dates.map((date, j) =>
-              <DateCell key={j}>
-                {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}
-                {dayOfWeek[(date.getDay()) % 7]}
-              </DateCell>)}
-          </tr>
-          {ROW.map((time, i) =>
-            <tr key={i}>
+      <div style={{ width: "100%", height: "100%", overflow: "auto" }} ref={scrollRef}>
+        <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
+          <tbody>
+            <tr>
+              <td></td>
+              {dates.map((date, j) =>
+                <DateCell key={j}>
+                  {hideDate || <span>{date.getMonth()+1}/{date.getDate()}{"\n"}</span>}
+                  {dayOfWeek[(date.getDay()) % 7]}
+                </DateCell>)}
+            </tr>
+            {ROW.map((time, i) =>
+              <tr key={i}>
+                <TimeTd>
+                  {new Time(time).section === 0 && new Time(time).timeStr}
+                </TimeTd>
+                {COL.map((day, j) =>
+                  <Grid
+                    key={j}
+                    id={`${i}-${j}-${randomID}`}
+                    {...{ i, j, time, date, down, enter, leave, click }}
+                  />)}
+              </tr>)}
+            <tr>
               <TimeTd>
-                {new Time(time).section === 0 && new Time(time).timeStr}
+                {new Time(ROW[ROW.length-1]+1).section === 0 && new Time(ROW[ROW.length-1]+1).timeStr}
               </TimeTd>
-              {COL.map((day, j) =>
-                <Grid
-                  key={j}
-                  id={`${i}-${j}-${randomID}`}
-                  {...{ i, j, time, date, down, enter, leave, click }}
-                />)}
-            </tr>)}
-          <tr>
-            <TimeTd>
-              {new Time(ROW[ROW.length-1]+1).section === 0 && new Time(ROW[ROW.length-1]+1).timeStr}
-            </TimeTd>
-          </tr>
-        </tbody>
-      </Table>
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+      <Corner>{corner}</Corner>
+      <ScrollX style={{ left: "var(--w)" }}>
+        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+          <KeyboardArrowLeftIcon onClick={() => {
+            scrollRef.current?.scrollBy?.({ left: -45, behavior: "smooth" });
+          }}/>
+        </IconButton>
+      </ScrollX>
+      <ScrollX style={{ right: 0 }}>
+        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+          <KeyboardArrowRightIcon onClick={() => {
+            scrollRef.current?.scrollBy?.({ left: +45, behavior: "smooth" });
+          }}/>
+        </IconButton>
+      </ScrollX>
+      <ScrollY style={{ top: "var(--h)" }}>
+        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+          <KeyboardArrowUpIcon onClick={() => {
+            scrollRef.current?.scrollBy?.({ top: -45, behavior: "smooth" });
+          }}/>
+        </IconButton>
+      </ScrollY>
+      <ScrollY style={{ bottom: 0 }}>
+        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+          <KeyboardArrowDownIcon onClick={() => {
+            scrollRef.current?.scrollBy?.({ top: +45, behavior: "smooth" });
+          }}/>
+        </IconButton>
+      </ScrollY>
     </Container>
   );
 }

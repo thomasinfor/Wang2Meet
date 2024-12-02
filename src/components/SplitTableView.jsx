@@ -42,5 +42,5 @@ export const SplitViewContainer = styled(Container)`
 `;
 export const TableWrapper = styled.div`
   max-width: 100%;
-  max-height: 95vh;
+  max-height: 90vh;
 `;
