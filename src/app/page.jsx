@@ -19,6 +19,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import PublicIcon from '@mui/icons-material/Public';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -45,7 +46,7 @@ export default function Home() {
   const { message } = useStatus();
   const router = useRouter();
   const dialogs = useDialogs();
-  const { history, request } = useAuth();
+  const { user, history, request } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [start, setStart] = useState(new Date().toLocaleDateString('en-CA'));
@@ -182,28 +183,34 @@ export default function Home() {
               Recent events
             </AccordionSummary>
             <AccordionDetails>
-              <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, pt: 0, pb: 0, borderRadius: 1.5 }}>
-                {history.map(({ id, title, date, time, duration }) => {
-                  const t1 = interpret(date, time[0]);
-                  const t2 = interpret(date, time[1], [0, duration-1]);
-                  return (
-                    <Fragment key={id}>
-                      <Divider component="li" />
-                      <ListItem secondaryAction={
-                        <IconButton edge="end" onClick={() => router.push("/" + id)}>
-                          <NavigateNextIcon color="primary"/>
-                        </IconButton>
-                      } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
-                        <ListItemText sx={{ my: 0.5, '& .MuiListItemText-secondary': {
-                          fontFamily: 'consolas', opacity: 0.8
-                        } }} primary={title} secondary={
-                          `[${t1.monthPad}/${t1.datePad} ~ ${t2.monthPad}/${t2.datePad}] [${t1.hourPad} ~ ${t2.hourPad}] ${duration} days`
-                        }/>
-                      </ListItem>
-                    </Fragment>
-                  );
-                })}
-              </List>
+              {user && history === undefined ? (
+                <Linear>
+                  <CircularProgress size={24}/>
+                </Linear>
+              ) : (
+                <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, pt: 0, pb: 0, borderRadius: 1.5 }}>
+                  {(history || []).map(({ id, title, date, time, duration }) => {
+                    const t1 = interpret(date, time[0]);
+                    const t2 = interpret(date, time[1], [0, duration-1]);
+                    return (
+                      <Fragment key={id}>
+                        <Divider component="li" />
+                        <ListItem secondaryAction={
+                          <IconButton edge="end" onClick={() => router.push("/" + id)}>
+                            <NavigateNextIcon color="primary"/>
+                          </IconButton>
+                        } sx={{ maxWidth: 'calc(100vw - 20px)', overflow: 'hidden' }}>
+                          <ListItemText sx={{ my: 0.5, '& .MuiListItemText-secondary': {
+                            fontFamily: 'consolas', opacity: 0.8
+                          } }} primary={title} secondary={
+                            `[${t1.monthPad}/${t1.datePad} ~ ${t2.monthPad}/${t2.datePad}] [${t1.hourPad} ~ ${t2.hourPad}] ${duration} days`
+                          }/>
+                        </ListItem>
+                      </Fragment>
+                    );
+                  })}
+                </List>
+              )}
             </AccordionDetails>
           </Accordion>
         </div>

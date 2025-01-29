@@ -255,7 +255,7 @@ export const AuthContextProvider = ({ children }) => {
       logOut,
       updateUser,
       sendFCMToken,
-      history: history || [],
+      history,
       addHistory,
       delHistory,
     }}>
