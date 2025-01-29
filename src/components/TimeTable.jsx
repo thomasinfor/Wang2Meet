@@ -97,6 +97,7 @@ export default function TimeTable({
   disabled=false, hideDate=false, ...props
 }) {
   const scrollRef = useRef();
+  const scrollEle = scrollRef.current || props.containerProps?.ref?.current;
   const [randomID, setRandomID] = useState(0);
   useEffect(() => { setRandomID(parseInt(Math.random() * 1e8)); }, []);
 
@@ -145,7 +146,11 @@ export default function TimeTable({
 
   return (
     <Container {...props} className={roboto_mono.className}>
-      <div style={{ width: "100%", height: "100%", overflow: "auto" }} ref={scrollRef}>
+      <div
+        style={{ width: "100%", height: "100%", overflow: "auto" }}
+        ref={scrollRef}
+        {...(props.containerProps || {})}
+      >
         <Table onDragStart={e => e.preventDefault()} className={disabled ? "disabled" : ""}>
           <tbody>
             <tr>
@@ -180,28 +185,28 @@ export default function TimeTable({
       <ScrollX style={{ left: "var(--w)" }}>
         <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
           <KeyboardArrowLeftIcon onClick={() => {
-            scrollRef.current?.scrollBy?.({ left: -45, behavior: "smooth" });
+            scrollEle?.scrollBy?.({ left: -45, behavior: "smooth" });
           }}/>
         </IconButton>
       </ScrollX>
       <ScrollX style={{ right: 0 }}>
         <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
           <KeyboardArrowRightIcon onClick={() => {
-            scrollRef.current?.scrollBy?.({ left: +45, behavior: "smooth" });
+            scrollEle?.scrollBy?.({ left: +45, behavior: "smooth" });
           }}/>
         </IconButton>
       </ScrollX>
       <ScrollY style={{ top: "var(--h)" }}>
         <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
           <KeyboardArrowUpIcon onClick={() => {
-            scrollRef.current?.scrollBy?.({ top: -45, behavior: "smooth" });
+            scrollEle?.scrollBy?.({ top: -45, behavior: "smooth" });
           }}/>
         </IconButton>
       </ScrollY>
       <ScrollY style={{ bottom: 0 }}>
         <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
           <KeyboardArrowDownIcon onClick={() => {
-            scrollRef.current?.scrollBy?.({ top: +45, behavior: "smooth" });
+            scrollEle?.scrollBy?.({ top: +45, behavior: "smooth" });
           }}/>
         </IconButton>
       </ScrollY>

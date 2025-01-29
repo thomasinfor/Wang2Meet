@@ -201,7 +201,6 @@ export default function MeetEdit({ params }) {
           />
         </SplitViewContainer>
         <SplitViewContainer
-          {...syncScroll(0)}
           className={(focus !== null ? 'hidden' : "") + (user ? "" : " no-border")}
         >
           {user ? (
@@ -217,6 +216,7 @@ export default function MeetEdit({ params }) {
                 bufferTime={1}
                 alarm={sync}
                 mask={config.mask}
+                containerProps={syncScroll(0)}
               />
             </TableWrapper>
           ) : (
@@ -233,7 +233,7 @@ export default function MeetEdit({ params }) {
             </div>
           )}
         </SplitViewContainer>
-        <SplitViewContainer className="pc" {...syncScroll(1)}>
+        <SplitViewContainer className="pc">
           <TableWrapper>
             <ViewTimeTable
               value={config.collection}
@@ -243,6 +243,7 @@ export default function MeetEdit({ params }) {
               focus={focus}
               setFocus={setFocus}
               mask={config.mask}
+              containerProps={syncScroll(1)}
             />
           </TableWrapper>
         </SplitViewContainer>
