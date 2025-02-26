@@ -1,6 +1,6 @@
 "use client"
 import React from "react";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useLocalStorageState } from '@toolpad/core';
 import { useAuth } from "@/context/Auth";
@@ -46,12 +46,16 @@ export function DefaultTheme({ children }) {
 
 export default function Theme({ children }) {
   const { request, user } = useAuth();
-  const [localTheme, setLocalTheme] = useLocalStorageState(STORAGE_KEY`theme`, defaultTheme, {
-    codec: {
-      parse: theme => theme && /^#[\da-f]{6}$/.test(theme) ? theme : null,
-      stringify: theme => theme
-    }
-  });
+  const [localTheme, setLocalTheme] = useLocalStorageState(
+    STORAGE_KEY`theme`,
+    defaultTheme,
+    useMemo(() => ({
+      codec: {
+        parse: theme => theme && /^#[\da-f]{6}$/.test(theme) ? theme : null,
+        stringify: theme => theme
+      }
+    }), [])
+  );
   const [theme, _setTheme] = useState(defaultTheme);
   useEffect(() => {
     if (localTheme) _setTheme(localTheme)
