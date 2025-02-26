@@ -304,7 +304,7 @@ function ParticipantConfig({ config, value, setValue, ...props }) {
                 {config.collection[email].name}
               </Typography>
               <Typography variant="caption" display="block" sx={{ lineHeight: 1 }} color={"#aaa"}>
-                {email}
+                {email.endsWith("@TEMP") ? "" : email}
               </Typography>
             </TableCell>
             <TableCell align="center" sx={{ py: 0 }}>

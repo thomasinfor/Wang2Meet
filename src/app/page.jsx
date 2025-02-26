@@ -187,9 +187,9 @@ export default function Home() {
                 <Linear>
                   <CircularProgress size={24}/>
                 </Linear>
-              ) : (
+              ) : history ? (
                 <List sx={{ bgcolor: '#ddd', '& > li': { pt: 0, pb: 0 }, pt: 0, pb: 0, borderRadius: 1.5 }}>
-                  {(history || []).map(({ id, title, date, time, duration }) => {
+                  {history.map(({ id, title, date, time, duration }) => {
                     const t1 = interpret(date, time[0]);
                     const t2 = interpret(date, time[1], [0, duration-1]);
                     return (
@@ -210,7 +210,7 @@ export default function Home() {
                     );
                   })}
                 </List>
-              )}
+              ) : <Typography variant="subtitle2">Sign in to view your recent events.</Typography>}
             </AccordionDetails>
           </Accordion>
         </div>

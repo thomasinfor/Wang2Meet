@@ -13,6 +13,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import TextField from '@mui/material/TextField';
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -30,10 +32,14 @@ import { Tables, SplitViewContainer, TableWrapper} from "@/components/SplitTable
 export default function MeetEdit({ params }) {
   const dialogs = useDialogs();
   const { config, setConfig, wrapConfig, unwrapTable } = useConfig();
-  const { user, request, signIn } = useAuth();
+  const { user: _user, request, signIn } = useAuth();
+  const [user, setUser] = useState(_user);
+  useEffect(() => { setUser(_user); }, [_user]);
   const { message } = useStatus();
   const [table, setTable] = useState(null);
   const [focus, setFocus] = useState(null);
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
 
   const update = useCallback(async (tbl, is_new=true) => {
     setTable(tbl);
@@ -45,7 +51,9 @@ export default function MeetEdit({ params }) {
 
   const sync = useCallback(async (t) => {
     const time = dump(unwrapTable(t || table));
-    let res = await request('POST', `/api/${params.meet}`, {
+    let res = user.temp ? await request('POST', `/api/anonymous/${params.meet}`, {
+      body: { time, name, passwd: password }
+    }) : await request('POST', `/api/${params.meet}`, {
       body: { time }
     });
     if (!res.ok) {
@@ -64,7 +72,7 @@ export default function MeetEdit({ params }) {
       });
       return true;
     }
-  }, [user, request, table, params.meet, setConfig, unwrapTable, wrapConfig]);
+  }, [user, name, password, request, table, params.meet, setConfig, unwrapTable, wrapConfig]);
 
   const pasteSchedule = useCallback(async () => {
     if (!user || !table) return;
@@ -132,10 +140,20 @@ export default function MeetEdit({ params }) {
     }
   }, [focus, refs0, refs1]);
 
+  async function setTempUser() {
+    const res = await request('POST', `/api/anonymous/${params.meet}/check-user`, {
+      body: { name, passwd: password }
+    });
+    if (res.ok)
+      setUser({ email: name + "@TEMP", password, temp: true });
+    else
+      message(`Incorrect password associated with username "${name}"`, { variant: "error" });
+  }
+
   return (
     <>
       <Stack direction="row" spacing={2}>
-        {user &&
+        {user && !user.temp &&
           <Chip
             icon={<ContentPasteGoIcon/>}
             label="Paste my schedule"
@@ -207,7 +225,6 @@ export default function MeetEdit({ params }) {
             <TableWrapper>
               <EditTimeTable
                 defaultTable={config.collection[user?.email]?.table || null}
-                disabled={!user}
                 time={config.time}
                 date={config.date}
                 duration={config.duration}
@@ -220,17 +237,47 @@ export default function MeetEdit({ params }) {
               />
             </TableWrapper>
           ) : (
-            <div style={{ padding: '20px 0' }}>
+            <Stack sx={{ p: 2.5 }} spacing={1} alignItems="center">
               {user === false ? <CircularProgress/> : (
-                <Chip
-                  icon={<GoogleIcon/>}
-                  label="Sign in to continue"
-                  variant="contained"
-                  color="primary"
-                  onClick={signIn}
-                />
+                <>
+                  <Chip
+                    icon={<GoogleIcon/>}
+                    label="Sign in to continue"
+                    variant="contained"
+                    color="primary"
+                    onClick={signIn}
+                  />
+                  <Divider flexItem sx={{ pt: 1 }}>or</Divider>
+                  <Typography>Use temporary account:</Typography>
+                  <TextField
+                    required
+                    size="small"
+                    label="Name"
+                    variant="outlined"
+                    fullWidth
+                    onChange={e => setName(e.target.value)}
+                    autoComplete="username"
+                  />
+                  <TextField
+                    size="small"
+                    label="Password (optional)"
+                    variant="outlined"
+                    fullWidth
+                    type="password"
+                    onChange={e => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <Typography variant="caption">* Temporary account is for this event only</Typography>
+                  <Chip
+                    label="Continue"
+                    variant="contained"
+                    color="primary"
+                    disabled={name.length === 0}
+                    onClick={setTempUser}
+                  />
+                </>
               )}
-            </div>
+            </Stack>
           )}
         </SplitViewContainer>
         <SplitViewContainer className="pc">
