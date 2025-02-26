@@ -57,7 +57,7 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
 `;
-const TableCtrl = styled.div`
+const TableCtrlFull = styled.div`
   position: absolute;
   z-index: 3;
   & {
@@ -65,7 +65,15 @@ const TableCtrl = styled.div`
     --h: calc(6vh + 34.4px);
   }
 `;
-const Corner = styled(TableCtrl)`
+const TableCtrlHalf = styled.div`
+  position: absolute;
+  z-index: 3;
+  & {
+    --w: 50px;
+    --h: calc(6vh + 16px);
+  }
+`;
+const CornerStyle = `
   top: 0; left: 0;
   display: flex;
   justify-content: center;
@@ -74,27 +82,39 @@ const Corner = styled(TableCtrl)`
   height: var(--h);
   width: var(--w);
 `;
-const ScrollX = styled(TableCtrl)(({ theme }) => `
+const ScrollXStyle = ({ theme }) => `
   top: 0;
   height: var(--h);
   display: flex;
   align-items: center;
   color: ${theme.palette.primary.main};
-`);
-const ScrollY = styled(TableCtrl)(({ theme }) => `
+`;
+const ScrollYStyle = ({ theme }) => `
   left: 0;
   width: var(--w);
   display: flex;
   flex-direction: column;
   align-items: center;
   color: ${theme.palette.primary.main};
-`);
+`;
+const TableCtrl = {
+  Full: {
+    Corner: styled(TableCtrlFull)(CornerStyle),
+    ScrollX: styled(TableCtrlFull)(ScrollXStyle),
+    ScrollY: styled(TableCtrlFull)(ScrollYStyle),
+  },
+  Half: {
+    Corner: styled(TableCtrlHalf)(CornerStyle),
+    ScrollX: styled(TableCtrlHalf)(ScrollXStyle),
+    ScrollY: styled(TableCtrlHalf)(ScrollYStyle),
+  }
+}
 
 export default function TimeTable({
   up=()=>{}, down=()=>{}, enter=()=>{}, leave=()=>{}, click=()=>{},
   time=defaultTime, date=defaultDate, duration=defaultDuration,
   Grid, corner=null,
-  disabled=false, hideDate=false, ...props
+  disabled=false, hideDate=false, hideScroll=false, ...props
 }) {
   const scrollRef = useRef();
   const scrollEle = scrollRef.current || props.containerProps?.ref?.current;
@@ -144,6 +164,7 @@ export default function TimeTable({
     };
   }, [enter, up, randomID]);
 
+  const { Corner, ScrollX, ScrollY } = TableCtrl[hideDate ? "Half" : "Full"];
   return (
     <Container {...props} className={roboto_mono.className}>
       <div
@@ -182,34 +203,38 @@ export default function TimeTable({
         </Table>
       </div>
       <Corner>{corner}</Corner>
-      <ScrollX style={{ left: "var(--w)" }}>
-        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
-          <KeyboardArrowLeftIcon onClick={() => {
-            scrollEle?.scrollBy?.({ left: -45, behavior: "smooth" });
-          }}/>
-        </IconButton>
-      </ScrollX>
-      <ScrollX style={{ right: 0 }}>
-        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
-          <KeyboardArrowRightIcon onClick={() => {
-            scrollEle?.scrollBy?.({ left: +45, behavior: "smooth" });
-          }}/>
-        </IconButton>
-      </ScrollX>
-      <ScrollY style={{ top: "var(--h)" }}>
-        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
-          <KeyboardArrowUpIcon onClick={() => {
-            scrollEle?.scrollBy?.({ top: -45, behavior: "smooth" });
-          }}/>
-        </IconButton>
-      </ScrollY>
-      <ScrollY style={{ bottom: 0 }}>
-        <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
-          <KeyboardArrowDownIcon onClick={() => {
-            scrollEle?.scrollBy?.({ top: +45, behavior: "smooth" });
-          }}/>
-        </IconButton>
-      </ScrollY>
+      {!hideScroll && (
+        <>
+          <ScrollX style={{ left: "var(--w)" }}>
+            <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+              <KeyboardArrowLeftIcon onClick={() => {
+                scrollEle?.scrollBy?.({ left: -45, behavior: "smooth" });
+              }}/>
+            </IconButton>
+          </ScrollX>
+          <ScrollX style={{ right: 0 }}>
+            <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+              <KeyboardArrowRightIcon onClick={() => {
+                scrollEle?.scrollBy?.({ left: +45, behavior: "smooth" });
+              }}/>
+            </IconButton>
+          </ScrollX>
+          <ScrollY style={{ top: "var(--h)" }}>
+            <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+              <KeyboardArrowUpIcon onClick={() => {
+                scrollEle?.scrollBy?.({ top: -45, behavior: "smooth" });
+              }}/>
+            </IconButton>
+          </ScrollY>
+          <ScrollY style={{ bottom: 0 }}>
+            <IconButton size="small" color="primary" sx={{ opacity: 0.7 }}>
+              <KeyboardArrowDownIcon onClick={() => {
+                scrollEle?.scrollBy?.({ top: +45, behavior: "smooth" });
+              }}/>
+            </IconButton>
+          </ScrollY>
+        </>
+      )}
     </Container>
   );
 }

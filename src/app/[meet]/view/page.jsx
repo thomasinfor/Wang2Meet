@@ -126,6 +126,7 @@ export default function MeetView() {
           className="mobile"
           list={getAvailable(viewFocus)}
           time={interpret(config.date, config.time, viewFocus)}
+          hideDate={config.weekly}
           style={{ position: 'fixed', top: '75px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
         />}
       <div style={{ width: "95%", maxWidth: 600, paddingBottom: 10 }}>
@@ -211,6 +212,7 @@ export default function MeetView() {
           <AvailableList
             list={getAvailable(viewFocus || [0, 0])}
             time={interpret(config.date, config.time, viewFocus || [0, 0])}
+            hideDate={config.weekly}
             style={{ paddingTop: '30px', paddingBottom: '30px' }}
           />
         </SplitViewContainer>
@@ -241,6 +243,7 @@ export default function MeetView() {
               highlightMax={highlightMax && viewGroup === true}
               mask={config.mask}
               index={config.index}
+              hideDate={config.weekly}
             />
           </TableWrapper>
         </SplitViewContainer>

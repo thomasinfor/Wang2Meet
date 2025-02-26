@@ -20,6 +20,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import PublicIcon from '@mui/icons-material/Public';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -51,6 +53,7 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [start, setStart] = useState(new Date().toLocaleDateString('en-CA'));
   const [end, setEnd] = useState(new Date().toLocaleDateString('en-CA'));
+  const [weekly, setWeekly] = useState(false);
   const [time, setTime] = useState([9, 22]);
   const [timezone, setTimezone] = useState(getTimezoneHere());
   const duration = useMemo(() => (new Date(end).getTime() - new Date(start).getTime()) / 86400000 + 1, [start, end]);
@@ -59,11 +62,12 @@ export default function Home() {
     let res = await request('POST', `/api/create-event`, {
       body: {
         time,
-        date: start.split('-').map(e => parseInt(e)),
-        duration,
+        date: weekly ? [2003, 6, 1] : start.split('-').map(e => parseInt(e)),
+        duration : weekly ? 7 : duration,
         title,
         timezone,
-        description: description || undefined
+        description: description || undefined,
+        weekly,
       }
     });
     if (!res.ok) return;
@@ -116,29 +120,36 @@ export default function Home() {
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                 />
-                <DateRange>
-                  <TextField
-                    error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(start)) || duration > 35}
-                    size="small"
-                    autoComplete="off"
-                    type="date"
-                    variant="outlined"
-                    value={start}
-                    onChange={e => setStart(e.target.value)}
-                  />
-                  -
-                  <TextField
-                    error={new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(end)) || duration > 35}
-                    size="small"
-                    autoComplete="off"
-                    type="date"
-                    variant="outlined"
-                    value={end}
-                    helperText={duration > 35 && "Maximum 35 days"}
-                    sx={{ '& .MuiFormHelperText-root': { mt: 0, height: 0 } }}
-                    onChange={e => setEnd(e.target.value)}
-                  />
-                </DateRange>
+                <div style={{ width: '100%', textAlign: 'center' }}>
+                  <DateRange>
+                    <TextField
+                      error={!weekly && new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(start)) || duration > 35}
+                      size="small"
+                      autoComplete="off"
+                      type="date"
+                      variant="outlined"
+                      value={weekly ? "2003-06-01" : start}
+                      onChange={e => setStart(e.target.value)}
+                      disabled={weekly}
+                    />
+                    -
+                    <TextField
+                      error={!weekly && new Date(end).getTime() < new Date(start).getTime() || isNaN(new Date(end)) || duration > 35}
+                      size="small"
+                      autoComplete="off"
+                      type="date"
+                      variant="outlined"
+                      value={weekly ? "2003-06-07" : end}
+                      helperText={duration > 35 && "Maximum 35 days"}
+                      sx={{ '& .MuiFormHelperText-root': { mt: 0, height: 0 } }}
+                      onChange={e => setEnd(e.target.value)}
+                      disabled={weekly}
+                    />
+                  </DateRange>
+                  <FormControlLabel control={
+                    <Switch checked={weekly} onChange={e => setWeekly(e.target.checked)}/>
+                  } label="Weekly" sx={{ mt: 1 }}/>
+                </div>
                 <Group>
                   <Typography gutterBottom>
                     Time:
@@ -169,9 +180,9 @@ export default function Home() {
                   onClick={confirm}
                   disabled={[
                     time[0] === time[1],
-                    new Date(end).getTime() < new Date(start).getTime(),
+                    !weekly && new Date(end).getTime() < new Date(start).getTime(),
                     isNaN(new Date(start)), isNaN(new Date(end)),
-                    duration > 35,
+                    !weekly && duration > 35,
                     !title
                   ].some(e => e)}
                 >Go</Button>

@@ -24,7 +24,7 @@ const Indicator = styled(TableCell)(() => ({
   }
 }));
 
-export default function AvailableList({ list=[], time=false, ...props }) {
+export default function AvailableList({ list=[], time=false, hideDate=false, ...props }) {
   return (
     <AvailableListContainer {...props}>
       <TableContainer component={Paper}>
@@ -33,7 +33,9 @@ export default function AvailableList({ list=[], time=false, ...props }) {
             <TableRow sx={{ background: "#ddd" }}>
               <TableCell align="center">{list.filter(e => e.available).length}</TableCell>
               <TableCell align="center" sx={{ minWidth: '145px' }}>
-                {time && `${time.year}/${time.month}/${time.date} ${time.dow} ${time.hourPad}:${time.minutePad}`}
+                {time && (hideDate ? `${time.dow} ${time.hourPad}:${time.minutePad}` : (
+                  `${time.year}/${time.month}/${time.date} ${time.dow} ${time.hourPad}:${time.minutePad}`
+                ))}
               </TableCell>
               <TableCell align="center">{list.filter(e => !e.available).length}</TableCell>
             </TableRow>

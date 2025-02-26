@@ -31,6 +31,7 @@ const meetSchema = new Schema({
     ref: "User",
   },
   date: { type: Date, required: true },
+  weekly: { type: Boolean, default: false },
   timeDuration: { type: Number, required: true, validate: { validator: e => isInt(e) && 0 < e && e <= 24 } },
   dateDuration: { type: Number, required: true, validate: { validator: e => isInt(e) && 1 <= e && e <= 35 } },
   title: { type: String, required: true, validate: { validator: e => e.length > 0 } },
@@ -77,6 +78,7 @@ const meetSchema = new Schema({
       const res = {
         id: this._id,
         date: this.date,
+        weekly: this.weekly,
         timeDuration: this.timeDuration,
         dateDuration: this.dateDuration,
         title: this.title,

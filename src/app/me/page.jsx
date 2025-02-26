@@ -209,6 +209,7 @@ export default function Me() {
                   value={table}
                   setValue={update}
                   hideDate
+                  hideScroll
                   bufferTime={1}
                   alarm={sync}
                 />

@@ -66,81 +66,87 @@ export default function MeetControl() {
 
   return (
     <>
-      <Typography variant="h5" sx={{
-        overflow: "auto",
-        maxWidth: "100%",
-        padding: "5px 10px",
-        boxSizing: "border-box",
-      }}>Settle up</Typography>
-      {viewFocus &&
-        <AvailableList
-          list={getAvailable(viewFocus)}
-          time={interp(viewFocus)}
-          style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
-        />}
-      <Stack direction="row" spacing={2}>
-        <Chip
-          sx={{ minWidth: "150px" }}
-          label={start ? timeStr(interp(start)) : listen === "start" ? "Picking..." : "Pick start"}
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            if (start) {
-              setRange(r => [null, r[1]]);
-              setListen("start");
-            } else {
-              setListen(l => l === "start" ? null : "start");
-            }
-          }}
-        />
-        <Chip
-          sx={{ minWidth: "150px" }}
-          label={end ? timeStr(interp(end).next()) : listen === "end" ? "Picking..." : "Pick end"}
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            if (end) {
-              setRange(r => [r[0], null]);
-              setListen("end");
-            } else {
-              setListen(l => l === "end" ? null : "end");
-            }
-          }}
-        />
-      </Stack>
-      <Stack direction="row" spacing={2}>
-        <Chip
-          icon={
-            <Image
-              width="24" height="24" alt="Google Calendar Icon"
-              src={`https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_${start ? interp(start).date : 31}_2x.png`}
+      {!config.weekly && (
+        <>
+          <Typography variant="h5" sx={{
+            overflow: "auto",
+            maxWidth: "100%",
+            padding: "5px 10px",
+            boxSizing: "border-box",
+          }}>Settle up</Typography>
+          {viewFocus &&
+            <AvailableList
+              list={getAvailable(viewFocus)}
+              time={interp(viewFocus)}
+              hideDate={config.weekly}
+              style={{ position: 'sticky', top: '5px', zIndex: 10, pointerEvents: 'none', opacity: 0.6, margin: '0 10px' }}
+            />}
+          <Stack direction="row" spacing={2}>
+            <Chip
+              sx={{ minWidth: "150px" }}
+              label={start ? timeStr(interp(start)) : listen === "start" ? "Picking..." : "Pick start"}
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                if (start) {
+                  setRange(r => [null, r[1]]);
+                  setListen("start");
+                } else {
+                  setListen(l => l === "start" ? null : "start");
+                }
+              }}
             />
-          }
-          label="Create Google Calendar event"
-          variant="contained"
-          disabled={!start || !end}
-          color="primary"
-          onClick={() => window.open(getCalendarLink(config, interp(start), interp(end), timezone))}
-        />
-      </Stack>
-      <Tables>
-        <Container>
-          <TableWrapper className="constrained">
-            <ViewTimeTable
-              keepFocus
-              value={config.collection}
-              time={config.time}
-              date={config.date}
-              duration={config.duration}
-              focus={viewFocus}
-              setFocus={setViewFocus}
-              click={onGridClick}
-              highlightRange={(start || end) && [start || end, end || start]}
-              mask={config.mask}
+            <Chip
+              sx={{ minWidth: "150px" }}
+              label={end ? timeStr(interp(end).next()) : listen === "end" ? "Picking..." : "Pick end"}
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                if (end) {
+                  setRange(r => [r[0], null]);
+                  setListen("end");
+                } else {
+                  setListen(l => l === "end" ? null : "end");
+                }
+              }}
             />
-          </TableWrapper>
-        </Container>
-      </Tables>
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <Chip
+              icon={
+                <Image
+                  width="24" height="24" alt="Google Calendar Icon"
+                  src={`https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_${start ? interp(start).date : 31}_2x.png`}
+                />
+              }
+              label="Create Google Calendar event"
+              variant="contained"
+              disabled={!start || !end}
+              color="primary"
+              onClick={() => window.open(getCalendarLink(config, interp(start), interp(end), timezone))}
+            />
+          </Stack>
+          <Tables>
+            <Container>
+              <TableWrapper className="constrained">
+                <ViewTimeTable
+                  keepFocus
+                  value={config.collection}
+                  time={config.time}
+                  date={config.date}
+                  duration={config.duration}
+                  focus={viewFocus}
+                  setFocus={setViewFocus}
+                  click={onGridClick}
+                  highlightRange={(start || end) && [start || end, end || start]}
+                  mask={config.mask}
+                  hideDate={config.weekly}
+                />
+              </TableWrapper>
+            </Container>
+          </Tables>
+        </>
+      )}
     </>
   );
 }

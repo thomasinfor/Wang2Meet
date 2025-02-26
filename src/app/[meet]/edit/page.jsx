@@ -215,6 +215,7 @@ export default function MeetEdit({ params }) {
           <AvailableList
             time={interpret(config.date, config.time, focus || [0, 0])}
             list={getAvailable(focus || [0, 0])}
+            hideDate={config.weekly}
             style={{ paddingTop: '30px', paddingBottom: '30px' }}
           />
         </SplitViewContainer>
@@ -234,6 +235,7 @@ export default function MeetEdit({ params }) {
                 alarm={sync}
                 mask={config.mask}
                 containerProps={syncScroll(0)}
+                hideDate={config.weekly}
               />
             </TableWrapper>
           ) : (
@@ -291,6 +293,7 @@ export default function MeetEdit({ params }) {
               setFocus={setFocus}
               mask={config.mask}
               containerProps={syncScroll(1)}
+              hideDate={config.weekly}
             />
           </TableWrapper>
         </SplitViewContainer>
