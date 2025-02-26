@@ -18,6 +18,7 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "firebase": "^10.8.0",
+    "ics": "^3.8.1",
     "next": "^14.2.15",
     "next-pwa": "^5.6.0",
     "notistack": "^3.0.1",

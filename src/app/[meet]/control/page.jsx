@@ -6,9 +6,10 @@ import styled from "@emotion/styled";
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ViewTimeTable from "@/components/ViewTimeTable";
 import AvailableList from "@/components/AvailableList";
-import { interpret, slotBefore, getCalendarLink } from "@/utils";
+import { interpret, slotBefore, getCalendarLink, getICSLink } from "@/utils";
 import { useConfig } from "../MeetPanel";
 
 const Tables = styled.div`
@@ -125,6 +126,20 @@ export default function MeetControl() {
               color="primary"
               onClick={() => window.open(getCalendarLink(config, interp(start), interp(end), timezone))}
             />
+            <a
+              href={start && end ? getICSLink(config, interp(start), interp(end), timezone) : ""}
+              download={`${config.id}.ics`}
+              style={{ pointerEvents: start && end ? 'auto' : 'none' }}
+            >
+              <Chip
+                icon={<CalendarMonthIcon/>}
+                label="Other calendar event"
+                variant="contained"
+                disabled={!start || !end}
+                color="primary"
+                onClick={() => {}}
+              />
+            </a>
           </Stack>
           <Tables>
             <Container>

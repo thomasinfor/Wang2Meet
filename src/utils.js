@@ -1,3 +1,5 @@
+import * as ics from 'ics';
+
 export function STORAGE_KEY(x) { return "Wang2Meet_" + x; }
 export function inRange(v, l, r){ return (l <= v && v <= r) || (r <= v && v <= l); }
 export function pad(n, digit){ const res = `${n}`; return "0".repeat(Math.max(0, digit-res.length)) + res; }
@@ -57,6 +59,14 @@ export function cast(table, d1, t1, d2, t2, duration) {
     return table;
   }
 }
+export function getHighlightLink(meet, start, end) {
+  const index = meet.index;
+  return `${window.location.origin}/${meet.id}/view?range=${
+    index[start.i][start.j]
+  },${
+    index[end.i][end.j]
+  }`;
+}
 export function getCalendarLink(meet, start, end, timezone) {
   // https://github.com/InteractionDesignFoundation/add-event-to-calendar-docs/blob/main/services/google.md
   const end2 = end.next();
@@ -73,13 +83,47 @@ export function getCalendarLink(meet, start, end, timezone) {
     end2.hourPad}${end2.minutePad
   }00`);
   params.append("ctz", timezone);
-  const link = `${window.location.origin}/${meet.id}/view?range=${start.idx},${end.idx}`;
+  const link = getHighlightLink(meet, start, end);
   params.append("details", `<h3>Wang2Meet</h3><a href="${link}">${link}</a>${
     !meet.description ? "" :
     "<h3>Description</h3>" + meet.description.slice(0, 1500)
   }`);
   params.append("add", Object.keys(meet.collection).join(","));
   return "https://www.google.com/calendar/render?" + params;
+}
+export function getICSLink(meet, start, end, timezone) {
+  const link = getHighlightLink(meet, start, end);
+  start = new Date(start.year, start.month-1, start.date, start.hour, start.minute);
+  end = end.next();
+  end = new Date(end.year, end.month-1, end.date, end.hour, end.minute);
+
+  const tmp = new Date()
+  const localDate = new Date(tmp.toLocaleString('en-US'));
+  const tzDate = new Date(tmp.toLocaleString('en-US', { timeZone: timezone }));
+
+  start = new Date(start.getTime() + (localDate.getTime() - tzDate.getTime()));
+  end = new Date(end.getTime() + (localDate.getTime() - tzDate.getTime()));
+
+  const event = {
+    start: start.getTime(),
+    startInputType: 'utc',
+    end: end.getTime(),
+    endInputType: 'utc',
+    title: meet.title,
+    description: "Wang2Meet\n" + link + "\n\n" + (meet.description ? ("Description:\n" + meet.description) : ""),
+    url: link,
+    // organizer:
+    attendees: Object.keys(meet.collection).filter(e => !e.endsWith("@TEMP")).map(e => ({ email: e })),
+    created: new Date().getTime(),
+    htmlContent: `<h3>Wang2Meet</h3><a href="${link}">${link}</a>${
+      !meet.description ? "" :
+      "<h3>Description</h3>" + meet.description.slice(0, 1500)
+    }`
+  };
+
+  const { value, error } = ics.createEvent(event);
+  if (error) console.error(error);
+  return 'data:text/plain;charset=utf-8,' + encodeURIComponent(value);
 }
 export function slotBefore(a, b) { return a[1] === b[1] ? a[0] <= b[0] : a[1] <= b[1]; }
 export function sum(x) { return x.reduce((a, b) => a + b, 0); }
