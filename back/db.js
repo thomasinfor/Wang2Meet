@@ -96,15 +96,14 @@ const meetSchema = new Schema({
       table = String(table);
       if (!checkTable(table, this.timeDuration * 4, this.dateDuration))
         return false;
+      if (user.temp && !this.check_user(user.name, user.passwd))
+        return false;
       for (let i = 0; i < this.tables.length; i++) {
         if (Boolean(this.tables[i].temp) !== Boolean(user.temp))
           continue;
-        if (user.temp) {
-          if (this.tables[i].tempUser.name !== user.name)
-            continue;
-          if (!checkHash(this.tables[i].tempUser.passwdHash, user.passwd))
-            return false;
-        } else if (!this.tables[i]?.user?.equals?.(user._id))
+        if (user.temp ? (
+          this.tables[i].tempUser.name !== user.name
+        ) : !this.tables[i]?.user?.equals?.(user._id))
           continue;
 
         // user matched
@@ -132,6 +131,13 @@ const meetSchema = new Schema({
         else
           this.tables.push({ user: user._id, table });
         if (save) await this.save();
+      }
+      return true;
+    },
+    check_user(name, passwd) {
+      for (let t of this.tables) {
+        if (t.temp && t.tempUser.name === name)
+          return checkHash(t.tempUser.passwdHash, passwd);
       }
       return true;
     }

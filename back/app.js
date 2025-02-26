@@ -140,10 +140,25 @@ App.post('/anonymous/:id', wrapper(async (req, res) => {
     if (await meet.set({ temp: true, name, passwd }, time, true)) {
       res.status(200).json(await meet.dump());
     } else {
-      if (checkTable(time, meet.timeDuration * 4, meet.dateDuration))
+      if (!meet.check_user(name, passwd))
         res.sendStatus(401);
       else
         res.sendStatus(400);
+    }
+  } else {
+    res.sendStatus(404);
+  }
+}));
+
+App.post('/anonymous/:id/check-user', wrapper(async (req, res) => {
+  const id = req.params.id;
+  const meet = await Meet.findById(id).exec();
+  if (meet) {
+    const { name, passwd } = req.body;
+    if (meet.check_user(name, passwd)) {
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(401);
     }
   } else {
     res.sendStatus(404);

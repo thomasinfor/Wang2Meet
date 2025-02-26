@@ -15,7 +15,7 @@ export default function MeetDefault() {
       router.replace(`${pathname}/view`);
     else
       router.replace(`${pathname}/edit`);
-  }, [pathname, router]);
+  }, [pathname, router, config, user]);
   return <></>;
 }
 
