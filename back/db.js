@@ -2,6 +2,7 @@ require("dotenv").config();
 const { randomUUID } = require('crypto');
 const Moment = require('moment-timezone');
 const { Schema, model, connect, Error } = require('mongoose');
+const { getHash, checkHash } = require('./passwd');
 
 const isInt = e => parseInt(e) === e;
 const checkTable = (table, i=96, j=7) => RegExp(`^([01]{${j}}\\n){${i}}$`).test(table + '\n');
@@ -36,10 +37,14 @@ const meetSchema = new Schema({
   description: String,
   tables: {
     type: [{
+      temp: { type: Boolean, default: false },
       user: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+      },
+      tempUser: {
+        name: String,
+        passwdHash: String,
       },
       table: { type: String, required: true },
     }],
@@ -75,8 +80,10 @@ const meetSchema = new Schema({
         timeDuration: this.timeDuration,
         dateDuration: this.dateDuration,
         title: this.title,
-        collection: Object.fromEntries((this.tables || []).map(e => [
-          e.user.email, { name: e.user.name, table: e.table }
+        collection: Object.fromEntries((this.tables || []).map(e => e.temp ? [
+          e.tempUser.name + "@TEMP", { name: e.tempUser.name, table: e.table, temp: true }
+        ] : [
+          e.user.email, { name: e.user.name, table: e.table, temp: false }
         ])),
       };
       if (this.creator)
@@ -90,20 +97,40 @@ const meetSchema = new Schema({
       if (!checkTable(table, this.timeDuration * 4, this.dateDuration))
         return false;
       for (let i = 0; i < this.tables.length; i++) {
-        if (this.tables[i].user.equals(user._id)) {
-          if (this.tables[i].table === table)
-            return true;
-          if (table.search("1") === -1) {
-            this.tables.splice(i, 1);
-          } else {
-            this.tables[i].table = table;
-          }
-          if (save) await this.save();
+        if (Boolean(this.tables[i].temp) !== Boolean(user.temp))
+          continue;
+        if (user.temp) {
+          if (this.tables[i].tempUser.name !== user.name)
+            continue;
+          if (!checkHash(this.tables[i].tempUser.passwdHash, user.passwd))
+            return false;
+        } else if (!this.tables[i]?.user?.equals?.(user._id))
+          continue;
+
+        // user matched
+        if (this.tables[i].table === table)
           return true;
+        if (table.search("1") === -1) {
+          this.tables.splice(i, 1);
+        } else {
+          this.tables[i].table = table;
         }
+        if (save) await this.save();
+        return true;
       }
+      // user not found
       if (table.search("1") !== -1) {
-        this.tables.push({ user: user._id, table });
+        if (user.temp)
+          this.tables.push({
+            temp: true,
+            tempUser: {
+              name: user.name,
+              passwdHash: getHash(user.passwd)
+            },
+            table
+          });
+        else
+          this.tables.push({ user: user._id, table });
         if (save) await this.save();
       }
       return true;

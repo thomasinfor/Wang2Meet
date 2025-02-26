@@ -132,6 +132,24 @@ App.post('/:id', wrapper({ auth: true }, async (req, res) => {
   }
 }));
 
+App.post('/anonymous/:id', wrapper(async (req, res) => {
+  const id = req.params.id;
+  const meet = await Meet.findById(id).exec();
+  if (meet) {
+    const { time, name, passwd } = req.body;
+    if (await meet.set({ temp: true, name, passwd }, time, true)) {
+      res.status(200).json(await meet.dump());
+    } else {
+      if (checkTable(time, meet.timeDuration * 4, meet.dateDuration))
+        res.sendStatus(401);
+      else
+        res.sendStatus(400);
+    }
+  } else {
+    res.sendStatus(404);
+  }
+}));
+
 connectDB().then(() => {
   console.log("Connected to DB");
   App.listen(port, () => {
