@@ -32,7 +32,7 @@ const TimeTd = styled.td`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transform: translateY(-50%);
+  transform: translate(-1px, -50%);
   font-size: smaller;
   position: sticky;
   background: #fff;
